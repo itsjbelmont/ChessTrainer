@@ -38,6 +38,10 @@ public class ChessShell {
                 if (command.equals("help")) {
                     System.out.println("\nPossible Commands:");
                     System.out.println("\trefreshAllPieceMoves");
+                    System.out.println("print white pieces");
+                    System.out.println("print black pieces");
+                    System.out.println("print white controlled squares");
+                    System.out.println("print black controlled squares");
                     System.out.println("\tprint moves a1");
                     System.out.println("\tremove a1");
                     System.out.println("\tadd white|black pawn|rook|knight|bishop|queen|king at a1");
@@ -60,6 +64,14 @@ public class ChessShell {
                     for(ChessPiece piece: chessBoard.getBlackPieces()) {
                         System.out.println(piece);
                     }
+                }
+
+                if (command.equals("print black controlled squares")) {
+                    chessBoard.printControlledSquares(ChessPiece.PieceColor.BLACK);
+                }
+
+                if (command.equals("print white controlled squares")) {
+                    chessBoard.printControlledSquares(ChessPiece.PieceColor.WHITE);
                 }
 
                 if (Pattern.matches("print moves [a-h][1-8]", command)) {

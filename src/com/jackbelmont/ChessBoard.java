@@ -28,6 +28,8 @@ public class ChessBoard {
     private ChessPiece[][] chessPieces = new ChessPiece[8][8];
     private ArrayList<ChessPiece> whitePieces = null;
     private ArrayList<ChessPiece> blackPieces = null;
+    private Integer[][] blackControlledSquares = new Integer[8][8];
+    private Integer[][] whiteControlledSquares = new Integer[8][8];
     private ChessPiece.PieceColor myPieceColor;
     private ChessPiece.PieceColor whosTurn = ChessPiece.PieceColor.WHITE;
     private GameMode mode;
@@ -213,6 +215,65 @@ public class ChessBoard {
         //Refresh Black Pieces
         for (ChessPiece piece : blackPieces) {
             piece.refreshPossibleMoves(this.chessPieces);
+        }
+
+        refreshWhiteControlledSquares();
+        refreshBlackControlledSquares();
+    }
+
+    public void refreshBlackControlledSquares() {
+        Character files[] = ChessBoard.files;
+        Character ranks[] = ChessBoard.ranks;
+
+        //TODO: what about pieces defending thier own pieces - that is controlled right? 'd'
+
+        // All squares default to attacked by 0 pieces
+        for (Character file : files) {
+            for (Character rank : ranks) {
+                int fileIdx = ChessBoard.getFileIdx(file);
+                int rankIdx = ChessBoard.getRankIdx(rank);
+                blackControlledSquares[rankIdx][fileIdx] = 0;
+            }
+        }
+
+        for (ChessPiece piece : blackPieces) {
+            for (Character file : files) {
+                for (Character rank : ranks) {
+                    int fileIdx = ChessBoard.getFileIdx(file);
+                    int rankIdx = ChessBoard.getRankIdx(rank);
+                    if (piece.controlsSquare(file, rank)) {
+                        blackControlledSquares[rankIdx][fileIdx]++;
+                    }
+                }
+            }
+        }
+    }
+
+    public void refreshWhiteControlledSquares() {
+        Character files[] = ChessBoard.files;
+        Character ranks[] = ChessBoard.ranks;
+
+        //TODO: what about pieces defending thier own pieces - that is controlled right? 'd'
+
+        // All squares default to attacked by 0 pieces
+        for (Character file : files) {
+            for (Character rank : ranks) {
+                int fileIdx = ChessBoard.getFileIdx(file);
+                int rankIdx = ChessBoard.getRankIdx(rank);
+                whiteControlledSquares[rankIdx][fileIdx] = 0;
+            }
+        }
+
+        for (ChessPiece piece : whitePieces) {
+            for (Character file : files) {
+                for (Character rank : ranks) {
+                    int fileIdx = ChessBoard.getFileIdx(file);
+                    int rankIdx = ChessBoard.getRankIdx(rank);
+                    if (piece.controlsSquare(file, rank)) {
+                        whiteControlledSquares[rankIdx][fileIdx]++;
+                    }
+                }
+            }
         }
     }
 
@@ -457,6 +518,39 @@ public class ChessBoard {
         System.out.println(outputBoard);
     }
 
+    public void printControlledSquares(ChessPiece.PieceColor color) {
+        StringBuilder outputBoard = new StringBuilder();
+        Character files[] = ChessBoard.files;
+        Character ranks[] = {'8', '7', '6', '5', '4', '3', '2', '1'};
+
+        Integer[][] controlledSquares;
+        if (color == ChessPiece.PieceColor.WHITE) {
+            controlledSquares = whiteControlledSquares;
+        } else {
+            controlledSquares = blackControlledSquares;
+        }
+
+        outputBoard.append("  |-----|-----|-----|-----|-----|-----|-----|-----|\n");
+        for (Character rank : ranks) {
+            int rankIdx = ChessBoard.getRankIdx(rank);
+            outputBoard.append( ConsoleColors.RED + (rankIdx + 1) + ConsoleColors.RESET + " |");
+            for ( Character file : files ) {
+                int fileIdx = ChessBoard.getFileIdx(file);
+
+                if (controlledSquares[rankIdx][fileIdx] == null || controlledSquares[rankIdx][fileIdx] == 0){
+                    outputBoard.append("     ");
+                } else
+                    outputBoard.append("  " + controlledSquares[rankIdx][fileIdx] + "  ");
+
+                outputBoard.append("|");
+            }
+            outputBoard.append("\n");
+            outputBoard.append("  |-----|-----|-----|-----|-----|-----|-----|-----|\n");
+        }
+        outputBoard.append(ConsoleColors.RED + "     a     b     c     d     e     f     g     h   \n" + ConsoleColors.RESET);
+        System.out.println(outputBoard);
+    }
+
     public static void playChessBoard() {
         Runnable r = new Runnable() {
 
@@ -546,6 +640,8 @@ public class ChessBoard {
             blackPieces.add(piece);
         }
 
+        refreshAllPieceMoves();
+
         return piece;
     }
 
@@ -588,6 +684,20 @@ public class ChessBoard {
                 chessPieces[rankIdx][fileIdx] = null;
             } else {
                 Logger.logStr("ChessPiece::removePieceAtPosition() No piece to remove at " + file + rank);
+            }
+        }
+
+        // Need to search through white and black pieces to remove piece
+        for (int i=0; i<whitePieces.size(); i++) {
+            if (whitePieces.get(i).file == file && whitePieces.get(i).rank == rank) {
+                // Found piece - now remove it
+                whitePieces.remove(i);
+            }
+        }
+        for (int i=0; i<blackPieces.size(); i++) {
+            if (blackPieces.get(i).file == file && blackPieces.get(i).rank == rank) {
+                // Found piece - now remove it
+                blackPieces.remove(i);
             }
         }
 

@@ -195,7 +195,7 @@ public abstract class ChessPiece {
     public boolean canMoveTo(Character file, Character rank) {
         int fileIdx = ChessBoard.getFileIdx(file);
         int rankIdx = ChessBoard.getRankIdx(rank);
-        if (possibleMoves[rankIdx][fileIdx] != null) {
+        if (possibleMoves[rankIdx][fileIdx] != null && (possibleMoves[rankIdx][fileIdx] == 'X' || possibleMoves[rankIdx][fileIdx] == 'M')) {
             /* Can move to a square if its just a move OR an attack: 'M' or 'X' */
             return true;
         } else {
@@ -211,13 +211,31 @@ public abstract class ChessPiece {
     public boolean canCaptureAt(Character file, Character rank) {
         int fileIdx = ChessBoard.getFileIdx(file);
         int rankIdx = ChessBoard.getRankIdx(rank);
-        if (possibleMoves[rankIdx][fileIdx] == 'X') {
+        if (possibleMoves[rankIdx][fileIdx] != null && possibleMoves[rankIdx][fileIdx] == 'X') {
             /* Can capture a piece at a square if possibleMoves marks it as an 'X' */
             return true;
         } else {
             /* if square not marked by possibleMoves as 'X' then cant capture there */
             return false;
         }
+    }
+
+    public boolean controlsSquare(Character file, Character rank) {
+        int fileIdx = ChessBoard.getFileIdx(file);
+        int rankIdx = ChessBoard.getRankIdx(rank);
+        if (possibleMoves[rankIdx][fileIdx] != null) {
+            if (this.type == PieceType.PAWN) {
+                if (possibleMoves[rankIdx][fileIdx] == 'x' || possibleMoves[rankIdx][fileIdx] == 'X') {
+                    return true;
+                }
+            } else {
+                /* Non-Pawns control all squares they can move to or capture at - 'M' or 'X' */
+                return true;
+            }
+        }
+
+        /* if square not marked by possibleMoves as 'X' then cant capture there */
+        return false;
     }
 
     /*

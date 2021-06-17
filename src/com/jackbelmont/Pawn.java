@@ -90,6 +90,9 @@ public class Pawn extends ChessPiece{
                     if (chessBoard[curRank+1][curFile-1].color == PieceColor.BLACK) {
                         possibleMoves[curRank+1][curFile-1] = 'X';
                     }
+                } else {
+                    // This is because the square is still controlled by the pawn (little x)
+                    possibleMoves[curRank+1][curFile-1] = 'x';
                 }
             }
 
@@ -100,6 +103,9 @@ public class Pawn extends ChessPiece{
                     if (chessBoard[curRank+1][curFile+1].color == PieceColor.BLACK) {
                         possibleMoves[curRank+1][curFile+1] = 'X';
                     }
+                } else {
+                    // This is because the square is still controlled by the pawn (little x)
+                    possibleMoves[curRank+1][curFile+1] = 'x';
                 }
             }
 
@@ -124,6 +130,9 @@ public class Pawn extends ChessPiece{
                     if (chessBoard[curRank-1][curFile-1].color == PieceColor.WHITE) {
                         possibleMoves[curRank-1][curFile-1] = 'X';
                     }
+                } else {
+                    // This is because the square is still controlled by the pawn (little x)
+                    possibleMoves[curRank-1][curFile-1] = 'x';
                 }
             }
 
@@ -134,6 +143,9 @@ public class Pawn extends ChessPiece{
                     if (chessBoard[curRank-1][curFile+1].color == PieceColor.WHITE) {
                         possibleMoves[curRank-1][curFile+1] = 'X';
                     }
+                } else {
+                    // This is because the square is still controlled by the pawn (little x)
+                    possibleMoves[curRank-1][curFile+1] = 'x';
                 }
             }
 
