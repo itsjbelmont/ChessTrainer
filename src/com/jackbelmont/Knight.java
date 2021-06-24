@@ -57,7 +57,8 @@ public class Knight extends ChessPiece {
                             /* Attack enemy piece! */
                             possibleMoves[rankIdx][fileIdx] = 'X';
                         } else {
-                            /* Cant move to square occupied by friendly piece */
+                            /* Cant move to square occupied by friendly piece - Defend instead */
+                            possibleMoves[rankIdx][fileIdx] = 'd';
                         }
                     }
                 }

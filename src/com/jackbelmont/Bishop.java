@@ -61,6 +61,7 @@ public class Bishop extends ChessPiece {
                     possibleMoves[curRank+r][curFile+f] = 'X';
                 } else {
                     /* Cant move to square occupied by friendly piece */
+                    possibleMoves[curRank+r][curFile+f] = 'd';
                 }
                 break;
             }
@@ -82,6 +83,7 @@ public class Bishop extends ChessPiece {
                     possibleMoves[curRank+r][curFile-f] = 'X';
                 } else {
                     /* Cant move to square occupied by friendly piece */
+                    possibleMoves[curRank+r][curFile-f] = 'd';
                 }
                 break;
             }
@@ -103,6 +105,7 @@ public class Bishop extends ChessPiece {
                     possibleMoves[curRank-r][curFile+f] = 'X';
                 } else {
                     /* Cant move to square occupied by friendly piece */
+                    possibleMoves[curRank-r][curFile+f] = 'd';
                 }
                 break;
             }
@@ -124,6 +127,7 @@ public class Bishop extends ChessPiece {
                     possibleMoves[curRank-r][curFile-f] = 'X';
                 } else {
                     /* Cant move to square occupied by friendly piece */
+                    possibleMoves[curRank-r][curFile-f] = 'd';
                 }
                 break;
             }

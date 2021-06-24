@@ -47,19 +47,22 @@ public class King extends ChessPiece {
             for ( Character rank : ranks ) {
                 int fileIdx = ChessBoard.getFileIdx(file);
                 int rankIdx = ChessBoard.getRankIdx(rank);
+                if (abs(fileIdx - curFile) == 0 && abs(rankIdx - curRank) == 0) {
+                    /* Skip square king is currently on */
+                    continue;
+                }
 
                 /* king can only capture/move to neighboring squares */
                 if (abs(fileIdx - curFile) <= 1 && abs(rankIdx - curRank) <= 1) {
                     if (chessBoard[rankIdx][fileIdx] == null) {
-                        //TODO: need to check if square is being attacked by enemy piece - King cant move into check
                         possibleMoves[rankIdx][fileIdx] = 'M';
                     } else {
                         if(chessBoard[rankIdx][fileIdx].color != this.color) {
                             /* Attack enemy piece! */
-                            //TODO: need to check if square is being defended by enemy piece - King cant move into check
                             possibleMoves[rankIdx][fileIdx] = 'X';
                         } else {
-                            /* Cant move to square occupied by friendly piece */
+                            /* Cant move to square occupied by friendly piece - defend instead*/
+                            possibleMoves[rankIdx][fileIdx] = 'd';
                         }
                     }
                     continue;

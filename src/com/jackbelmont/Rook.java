@@ -60,6 +60,7 @@ public class Rook extends ChessPiece {
                     possibleMoves[curRank+r][curFile] = 'X';
                 } else {
                     /* Cant move to square occupied by friendly piece */
+                    possibleMoves[curRank+r][curFile] = 'd';
                 }
                 break;
             }
@@ -79,6 +80,7 @@ public class Rook extends ChessPiece {
                     possibleMoves[curRank-r][curFile] = 'X';
                 } else {
                     /* Cant move to square occupied by friendly piece */
+                    possibleMoves[curRank-r][curFile] = 'd';
                 }
                 break;
             }
@@ -98,6 +100,7 @@ public class Rook extends ChessPiece {
                     possibleMoves[curRank][curFile+f] = 'X';
                 } else {
                     /* Cant move to square occupied by friendly piece */
+                    possibleMoves[curRank][curFile+f] = 'd';
                 }
                 break;
             }
@@ -117,6 +120,7 @@ public class Rook extends ChessPiece {
                     possibleMoves[curRank][curFile-f] = 'X';
                 } else {
                     /* Cant move to square occupied by friendly piece */
+                    possibleMoves[curRank][curFile-f] = 'd';
                 }
                 break;
             }

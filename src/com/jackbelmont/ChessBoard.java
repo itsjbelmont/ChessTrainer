@@ -203,9 +203,6 @@ public class ChessBoard {
         return 0; //success
     }
 
-    /*
-        refreshAllPieceMoves()
-    */
     public void refreshAllPieceMoves() {
         //Refresh White Pieces
         for (ChessPiece piece : whitePieces) {
@@ -277,12 +274,30 @@ public class ChessBoard {
         }
     }
 
-    /*
-        verifyMoveSyntax(String moveStr)
-            - moveStr: string representing a chess move such as Re7 or exd6
+    public void refreshPiecesOnBoard() {
+        //Nullify board
+        for (Character rank : ranks) {
+            for (Character file : files) {
+                Integer rankIdx = getRankIdx(rank);
+                Integer fileIdx = getFileIdx(file);
+                chessPieces[rankIdx][fileIdx] = null;
+            }
+        }
 
-            - Function verifies that the moveStr can be made
-    */
+        for (ChessPiece whitePiece : whitePieces) {
+            Integer rankIdx = getRankIdx(whitePiece.rank);
+            Integer fileIdx = getFileIdx(whitePiece.file);
+            chessPieces[rankIdx][fileIdx] = whitePiece;
+        }
+        for (ChessPiece blackPiece : blackPieces) {
+            Integer rankIdx = getRankIdx(blackPiece.rank);
+            Integer fileIdx = getFileIdx(blackPiece.file);
+            chessPieces[rankIdx][fileIdx] = blackPiece;
+        }
+
+        refreshAllPieceMoves();
+    }
+
     public boolean verifyMoveSyntax(String moveStr) {
         // Make sure a non empty string was passed so we don't get indexing issues
         if (moveStr == null || moveStr.isEmpty() || moveStr.isBlank()) {
@@ -393,10 +408,6 @@ public class ChessBoard {
         return true; // success
     }
 
-    /*
-        getPieceFromChessNotation(String move)
-            - move: chess move in chess notation
-    */
     public ChessPiece getPieceFromChessNotation(String move) {
         ChessPiece returnPiece = null;
 
@@ -485,9 +496,43 @@ public class ChessBoard {
         return null;
     }
 
-    /*
-        Print the chess board to the console
-    */
+    public boolean movePiece(ChessPiece piece, Character file, Character rank) {
+        if (piece == null) {
+            Logger.logStr("ChessBoard::movePice(): No piece specified");
+            return false;
+        } else {
+            Logger.logStr("ChessBoard::movePiece(): Trying to move piece at " + piece.file + piece.rank + " to " + file + rank);
+        }
+        // Validate file and rank values
+        Integer fileIdx = getFileIdx(file);
+        Integer rankIdx = getRankIdx(rank);
+        if (fileIdx > 7 || fileIdx < 0 || rankIdx > 7 || rankIdx < 0) {
+            Logger.logStr("ChessBoard::movePice(): Bad index");
+            return false;
+        }
+        ChessPiece destination = getPieceAtPosition(file, rank);
+        if (destination != null && destination.color == piece.color) {
+            /* Can not move to a square occupied by a friendly piece */
+            Logger.logStr("ChessBoard::movePice(): destination square is occupied by a friendly piece");
+            return false;
+        }
+
+        //TODO: verify that the move results in a valid board - might need to generate and verify a new resulting board (ie. no self checks)
+
+        if(piece.canMoveTo(file, rank)) {
+            if (destination != null && destination.color != piece.color) {
+                /* remove enemy piece if it exists */
+                removePieceAtPosition(file, rank);
+            }
+            piece.file = file;
+            piece.rank = rank;
+            refreshPiecesOnBoard();
+            return true;
+        }
+
+        return false;
+    }
+
     public void printChessBoard() {
         StringBuilder outputBoard = new StringBuilder();
         outputBoard.append("  |-----|-----|-----|-----|-----|-----|-----|-----|\n");
@@ -624,9 +669,6 @@ public class ChessBoard {
         }
     }
 
-    /*
-        Add a piece on the board
-    */
     public ChessPiece setPieceAtPosition(ChessPiece piece) {
         Integer fileIdx = getFileIdx(piece.file);
         Integer rankIdx = getRankIdx(piece.rank);
@@ -652,9 +694,6 @@ public class ChessBoard {
         initializeChessPieces();
     }
 
-    /*
-        Get a chess piece off the board
-    */
     public ChessPiece getPieceAtPosition(Character file, Character rank) {
         Integer fileIdx = getFileIdx(file);
         Integer rankIdx = getRankIdx(rank);
@@ -667,10 +706,6 @@ public class ChessBoard {
 
     }
 
-    /*
-        Remove a piece from the board
-            - Return a pointer to the piece
-    */
     public ChessPiece removePieceAtPosition(Character file, Character rank) {
         Integer fileIdx = getFileIdx(file);
         Integer rankIdx = getRankIdx(rank);

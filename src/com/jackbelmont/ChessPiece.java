@@ -126,8 +126,6 @@ public abstract class ChessPiece {
 
                 if (possibleMoves[rankIdx][fileIdx] == null){
                     outputBoard.append("     ");
-                } else if (possibleMoves[rankIdx][fileIdx] == 'X' || possibleMoves[rankIdx][fileIdx] == 'M') {
-                    outputBoard.append("  " + possibleMoves[rankIdx][fileIdx] + "  ");
                 } else if (possibleMoves[rankIdx][fileIdx] == 'O') {
                     if (this.color == ChessPiece.PieceColor.WHITE) {
                         outputBoard.append("  " + ConsoleColors.CYAN + 'O' + ConsoleColors.RESET + "  ");
@@ -135,7 +133,7 @@ public abstract class ChessPiece {
                         outputBoard.append("  " + ConsoleColors.GREEN + 'O' + ConsoleColors.RESET + "  ");
                     }
                 } else {
-                    outputBoard.append("     ");
+                    outputBoard.append("  " + possibleMoves[rankIdx][fileIdx] + "  ");
                 }
                 outputBoard.append("|");
             }

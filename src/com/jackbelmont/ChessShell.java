@@ -38,10 +38,10 @@ public class ChessShell {
                 if (command.equals("help")) {
                     System.out.println("\nPossible Commands:");
                     System.out.println("\trefreshAllPieceMoves");
-                    System.out.println("print white pieces");
-                    System.out.println("print black pieces");
-                    System.out.println("print white controlled squares");
-                    System.out.println("print black controlled squares");
+                    System.out.println("\tprint white pieces");
+                    System.out.println("\tprint black pieces");
+                    System.out.println("\tprint white controlled squares");
+                    System.out.println("\tprint black controlled squares");
                     System.out.println("\tprint moves a1");
                     System.out.println("\tremove a1");
                     System.out.println("\tadd white|black pawn|rook|knight|bishop|queen|king at a1");
@@ -58,20 +58,24 @@ public class ChessShell {
                     for(ChessPiece piece: chessBoard.getWhitePieces()) {
                         System.out.println(piece);
                     }
+                    continue;
                 }
 
                 if (command.equals("print black pieces")) {
                     for(ChessPiece piece: chessBoard.getBlackPieces()) {
                         System.out.println(piece);
                     }
+                    continue;
                 }
 
                 if (command.equals("print black controlled squares")) {
                     chessBoard.printControlledSquares(ChessPiece.PieceColor.BLACK);
+                    continue;
                 }
 
                 if (command.equals("print white controlled squares")) {
                     chessBoard.printControlledSquares(ChessPiece.PieceColor.WHITE);
+                    continue;
                 }
 
                 if (Pattern.matches("print moves [a-h][1-8]", command)) {
@@ -91,6 +95,24 @@ public class ChessShell {
                         }
                     }
                     continue;
+                }
+                if(Pattern.matches("move [a-h][1-8] [a-h][1-8]", command)) {
+                    Pattern p = Pattern.compile("move ([a-h][1-8]) ([a-h][1-8])");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        String piecePosition = m.group(1);
+                        Character pieceFile = piecePosition.charAt(0);
+                        Character pieceRank = piecePosition.charAt(1);
+
+                        String destPosition = m.group(2);
+                        Character destFile = destPosition.charAt(0);
+                        Character destRank = destPosition.charAt(1);
+                        ChessPiece piece = chessBoard.getPieceAtPosition(pieceFile, pieceRank);
+                        if (!chessBoard.movePiece(piece, destFile, destRank)) {
+                            System.out.println("ERROR: Couldnt move piece");
+                        }
+                        continue;
+                    }
                 }
 
                 if (Pattern.matches("remove [a-h][1-8]", command)) {

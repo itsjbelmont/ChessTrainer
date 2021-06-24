@@ -71,8 +71,10 @@ public class Pawn extends ChessPiece{
         if (this.color == PieceColor.WHITE) {
 
             // Can move 1 up if the space isnt already taken
-            if (chessBoard[curRank+1][curFile] == null) {
-                possibleMoves[curRank+1][curFile] = 'M';
+            if (curRank < 7) {
+                if (chessBoard[curRank + 1][curFile] == null) {
+                    possibleMoves[curRank + 1][curFile] = 'M';
+                }
             }
 
             // Can move 2 up if on rank 2
@@ -83,12 +85,14 @@ public class Pawn extends ChessPiece{
                 }
             }
 
-            // Can attack 1 up & 1 left unless on file 1
-            if (curFile > 0) {
+            // Can attack 1 up & 1 left unless on file 1 or rank 8
+            if (curFile > 0 && curRank < 7) {
                 // square under attack MUST have an enemy piece on it
                 if (chessBoard[curRank+1][curFile-1] != null) {
                     if (chessBoard[curRank+1][curFile-1].color == PieceColor.BLACK) {
-                        possibleMoves[curRank+1][curFile-1] = 'X';
+                        possibleMoves[curRank + 1][curFile - 1] = 'X';
+                    } else {
+                        possibleMoves[curRank + 1][curFile -1] = 'd';
                     }
                 } else {
                     // This is because the square is still controlled by the pawn (little x)
@@ -96,12 +100,14 @@ public class Pawn extends ChessPiece{
                 }
             }
 
-            // Can attack 1 up & 1 right unless on file 8
-            if (curFile < 7) {
+            // Can attack 1 up & 1 right unless on file 8 or rank 8
+            if (curFile < 7 && curRank < 7) {
                 // square under attack MUST have an enemy piece on it
                 if (chessBoard[curRank+1][curFile+1] != null) {
                     if (chessBoard[curRank+1][curFile+1].color == PieceColor.BLACK) {
                         possibleMoves[curRank+1][curFile+1] = 'X';
+                    } else {
+                        possibleMoves[curRank+1][curFile+1] = 'd';
                     }
                 } else {
                     // This is because the square is still controlled by the pawn (little x)
@@ -111,8 +117,10 @@ public class Pawn extends ChessPiece{
 
         } else { //this.color == PieceColor.BLACK
             // Can move 1 down
-            if (chessBoard[curRank-1][curFile] == null) {
-                possibleMoves[curRank-1][curFile] = 'M';
+            if (curRank > 0) {
+                if (chessBoard[curRank - 1][curFile] == null) {
+                    possibleMoves[curRank - 1][curFile] = 'M';
+                }
             }
 
             // Can move 2 down if on rank 7
@@ -124,11 +132,13 @@ public class Pawn extends ChessPiece{
             }
 
             // Can attack 1 down & 1 left
-            if (curFile > 0) {
+            if (curFile > 0 && curRank > 0) {
                 // square under attack MUST have an enemy piece on it
                 if (chessBoard[curRank-1][curFile-1] != null) {
                     if (chessBoard[curRank-1][curFile-1].color == PieceColor.WHITE) {
                         possibleMoves[curRank-1][curFile-1] = 'X';
+                    } else {
+                        possibleMoves[curRank-1][curFile-1] = 'd';
                     }
                 } else {
                     // This is because the square is still controlled by the pawn (little x)
@@ -137,11 +147,13 @@ public class Pawn extends ChessPiece{
             }
 
             // Can attack 1 down & 1 right
-            if (curFile < 7) {
+            if (curFile < 7 && curRank > 0) {
                 // square under attack MUST have an enemy piece on it
                 if (chessBoard[curRank-1][curFile+1] != null) {
                     if (chessBoard[curRank-1][curFile+1].color == PieceColor.WHITE) {
                         possibleMoves[curRank-1][curFile+1] = 'X';
+                    } else {
+                        possibleMoves[curRank-1][curFile+1] = 'd';
                     }
                 } else {
                     // This is because the square is still controlled by the pawn (little x)
