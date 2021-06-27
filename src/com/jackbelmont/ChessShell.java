@@ -128,6 +128,26 @@ public class ChessShell {
                     continue;
                 }
 
+                //e4
+                //exd4
+                //e8=Q
+                //e8Q
+                //exd8=Q
+                //exd8Q
+                String pawnMoveStr = "^([a-h])(x([a-h]))?([1-8])(=?([kqrbn]))?";
+                if (Pattern.matches(pawnMoveStr,command)) {
+                    Pattern p = Pattern.compile(pawnMoveStr);
+                    Matcher m = p.matcher(command);
+
+                    System.out.println("moveStr specified!");
+
+                    if (m.matches()) {
+                        System.out.println(m.group(1));
+                    }
+
+                    continue;
+                }
+
                 if (Pattern.matches("add (white|black) (pawn|rook|knight|bishop|king|queen) at [a-h][1-8]", command)) {
                     Pattern p = Pattern.compile("add (white|black) (pawn|rook|knight|bishop|king|queen) at ([a-h][1-8])");
                     Matcher m = p.matcher(command);
