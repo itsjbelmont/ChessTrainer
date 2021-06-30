@@ -14,6 +14,9 @@ public class ConsoleColors {
     public static final String CYAN = "\033[0;36m";    // CYAN
     public static final String WHITE = "\033[0;37m";   // WHITE
 
+    public static final String WHITE_PIECE = "\033[0;36m";    // CYAN
+    public static final String BLACK_PIECE = "\033[0;32m";    // GREEN
+
     // Background
     public static final String BLACK_BACKGROUND = "\033[40m";  // BLACK
     public static final String RED_BACKGROUND = "\033[41m";    // RED

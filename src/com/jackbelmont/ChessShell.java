@@ -16,13 +16,14 @@ public class ChessShell {
     public void test() {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.println("\n\n\nRunning ChessShell::test()  Enter 'help' for list of possible commands");
             while (true) {
                 System.out.println("");
                 chessBoard.printChessBoard();
                 if (chessBoard.getWhosTurn() == ChessPiece.PieceColor.WHITE) {
-                    System.out.print("Enter white command: ");
+                    System.out.print("ChessShell::test() enter command: ");
                 } else {
-                    System.out.print("Enter black command: ");
+                    System.out.print("ChessShell::test() enter command: ");
                 }
 
                 String command = reader.readLine();
@@ -37,6 +38,7 @@ public class ChessShell {
 
                 if (command.equals("help")) {
                     System.out.println("\nPossible Commands:");
+                    System.out.println("\tmove chessNotationCommand");
                     System.out.println("\trefreshAllPieceMoves");
                     System.out.println("\tprint white pieces");
                     System.out.println("\tprint black pieces");
@@ -128,24 +130,12 @@ public class ChessShell {
                     continue;
                 }
 
-                //e4
-                //exd4
-                //e8=Q
-                //e8Q
-                //exd8=Q
-                //exd8Q
-                String pawnMoveStr = "^([a-h])(x([a-h]))?([1-8])(=?([kqrbn]))?";
-                if (Pattern.matches(pawnMoveStr,command)) {
-                    Pattern p = Pattern.compile(pawnMoveStr);
+                if (Pattern.matches("^move (.*)$", command)) {
+                    Pattern p = Pattern.compile("^move (.*)$");
                     Matcher m = p.matcher(command);
-
-                    System.out.println("moveStr specified!");
-
                     if (m.matches()) {
-                        System.out.println(m.group(1));
+                        chessBoard.move(m.group(1));
                     }
-
-                    continue;
                 }
 
                 if (Pattern.matches("add (white|black) (pawn|rook|knight|bishop|king|queen) at [a-h][1-8]", command)) {
@@ -199,12 +189,6 @@ public class ChessShell {
                     }
                     chessBoard.refreshAllPieceMoves();
                     continue;
-                }
-
-                if (!chessBoard.verifyMoveSyntax(command)) {
-                    System.out.println("\tMove syntax could not be verified!");
-                } else {
-                    System.out.println("\tMove syntax verified!");
                 }
 
             }

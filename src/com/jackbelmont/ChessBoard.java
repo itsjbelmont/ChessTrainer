@@ -408,6 +408,174 @@ public class ChessBoard {
         return true; // success
     }
 
+    public boolean move(String command) {
+        ChessPiece pieceToMove = null;
+        ChessPiece.PieceType type = null;
+        Boolean capture = false;
+        Boolean promotion = false;
+        Character originRank = null;
+        Character originFile = null;
+        Character destinationFile = null;
+        Character destinationRank = null;
+        ChessPiece.PieceType promotionType = null;
+        String logStr = "ChessBoard::move() ";
+
+        String pawnMoveStr = "^([a-h])(x([a-h]))?([1-8])(=?([kqrbn]))?";
+        if (Pattern.matches(pawnMoveStr,command)) {
+            Pattern p = Pattern.compile(pawnMoveStr);
+            Matcher m = p.matcher(command);
+
+            System.out.println("Pawn move specified!");
+
+            if (m.matches()) {
+                type = ChessPiece.PieceType.PAWN;
+
+                if (m.group(1) != null) {
+                    originFile = m.group(1).charAt(0);
+                    /* Default pawns only move forwared - may be overwriten by capture */
+                    destinationFile = originFile;
+                    logStr = logStr + "Trying to move Pawn on file " + originFile + " to ";
+                } else {
+                    /* Pawn move always starts with the origin file */
+                    return false;
+                }
+
+                if (m.group(2) != null) {
+                    capture = true;
+                    if(m.group(3) != null) {
+                        destinationFile = m.group(3).charAt(0);
+                        logStr = logStr + "capture at " + destinationFile;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    logStr = logStr + originFile;
+                }
+
+                if(m.group(4) != null) {
+                    destinationRank = m.group(4).charAt(0);
+                    logStr = logStr + destinationRank + " ";
+                } else {
+                    /* Every pawn move must specify a destination rank */
+                    return false;
+                }
+
+                /* Can only move pieces associated with the current turn */
+                ArrayList<ChessPiece> piecesToMove;
+                if (whosTurn == ChessPiece.PieceColor.WHITE) {
+                    piecesToMove = whitePieces;
+                } else {
+                    piecesToMove = blackPieces;
+                }
+                for (ChessPiece piece : piecesToMove) {
+                    if (piece.type == type && piece.getFile() == originFile) {
+                        Boolean pieceCanMakeMove = false;
+                        if ( capture ) {
+                            pieceCanMakeMove = piece.canCaptureAt(destinationFile, destinationRank);
+                        } else {
+                            pieceCanMakeMove = piece.canMoveTo(destinationFile, destinationRank);
+                        }
+
+                        if (pieceCanMakeMove) {
+                            /* Dont need to worry about multiple pawns on a given file moving to the same square */
+                            pieceToMove = piece;
+                            break;
+                        }
+                    }
+                }
+                if (pieceToMove == null) {
+                    System.out.println("ChessBoard::move() there are no moves that can make the specified move right now!");
+                    return false;
+                }
+
+                if (m.group(5) != null) {
+                    if ((pieceToMove.color == ChessPiece.PieceColor.WHITE && destinationRank == '8') ||
+                         pieceToMove.color == ChessPiece.PieceColor.BLACK && destinationRank == '1') {
+                        if (m.group(6) != null) {
+                            promotion = true;
+                            switch (m.group(6).charAt(0)) {
+                                case 'r':
+                                    logStr = logStr + "with a promotion to a ROOK";
+                                    promotionType = ChessPiece.PieceType.ROOK;
+                                    break;
+                                case 'n':
+                                    logStr = logStr + "with a promotion to a KNIGHT";
+                                    promotionType = ChessPiece.PieceType.KNIGHT;
+                                    break;
+                                case 'b':
+                                    logStr = logStr + "with a promotion to a BISHOP";
+                                    promotionType = ChessPiece.PieceType.BISHOP;
+                                    break;
+                                case 'q':
+                                    logStr = logStr + "with a promotion to a QUEEN";
+                                    promotionType = ChessPiece.PieceType.QUEEN;
+                                    break;
+                                default:
+                                    System.out.println("ChessBoard::move() something went wrong getting the promotion piece!");
+                                    return false;
+                            }
+                        }
+                    } else {
+                        System.out.println("ChessBoard::move() only can promote pawn when white piece moves to rank 8 or black piece moves to rank 1");
+                        return false;
+                    }
+                } else if ((pieceToMove.color == ChessPiece.PieceColor.WHITE && destinationRank == '8') ||
+                            pieceToMove.color == ChessPiece.PieceColor.BLACK && destinationRank == '1') {
+                    System.out.println("ChessBoard::move() any pawn move to the back rank MUST be accompanied by a promotion");
+                    return false;
+                } else {
+                    promotion = false;
+                }
+
+            } else {
+                System.out.println("ChessBoard::move() something went wrong matching pawn movement string!");
+                return false;
+            }
+        }
+
+        /* Perform the specified move! */
+        System.out.println(logStr);
+        if (pieceToMove != null) {
+            movePiece(pieceToMove, destinationFile, destinationRank);
+        }
+
+        if (promotion) {
+            System.out.println("ChessBoard::move() promoting pawn to " + promotionType);
+            ChessPiece removedPiece = removePieceAtPosition(pieceToMove.file, pieceToMove.rank);
+            if (removedPiece != null) {
+                ChessPiece newPiece;
+                switch(promotionType) {
+                    case BISHOP:
+                        newPiece = new Bishop(removedPiece.color, removedPiece.file, removedPiece.rank);
+                        break;
+                    case KNIGHT:
+                        newPiece = new Knight(removedPiece.color, removedPiece.file, removedPiece.rank);
+                        break;
+                    case ROOK:
+                        newPiece = new Rook(removedPiece.color, removedPiece.file, removedPiece.rank);
+                        break;
+                    case QUEEN:
+                        newPiece = new Queen(removedPiece.color, removedPiece.file, removedPiece.rank);
+                        break;
+                    default:
+                        System.out.println("ChessBoard::move() Something went wrong creating a new piece for promotion - adding the old one back");
+                        setPieceAtPosition(removedPiece);
+                        return false;
+                }
+                setPieceAtPosition(newPiece);
+            }
+
+        }
+
+        /* Successful move if we got here - Now its the opponents turn */
+        if (whosTurn == ChessPiece.PieceColor.WHITE){
+            whosTurn = ChessPiece.PieceColor.BLACK;
+        } else {
+            whosTurn = ChessPiece.PieceColor.WHITE;
+        }
+        return true;
+    }
+
     public ChessPiece getPieceFromChessNotation(String move) {
         ChessPiece returnPiece = null;
 
@@ -535,6 +703,11 @@ public class ChessBoard {
 
     public void printChessBoard() {
         StringBuilder outputBoard = new StringBuilder();
+        if (whosTurn == ChessPiece.PieceColor.WHITE) {
+            outputBoard.append("  " + ConsoleColors.WHITE_PIECE + whosTurn + "S" + ConsoleColors.RESET + " TURN:\n");
+        } else {
+            outputBoard.append("  " + ConsoleColors.BLACK_PIECE + whosTurn + "S" + ConsoleColors.RESET + " TURN:\n");
+        }
         outputBoard.append("  |-----|-----|-----|-----|-----|-----|-----|-----|\n");
         for (int ii=7; ii>=0; ii--) { //Note a0 is bottom right but we start printing from a8
             outputBoard.append( ConsoleColors.RED + (ii + 1) + ConsoleColors.RESET + " |");
@@ -548,9 +721,9 @@ public class ChessBoard {
                 } else {
 
                     if (aPiece.color == ChessPiece.PieceColor.WHITE) {
-                        outputBoard.append("  " + ConsoleColors.CYAN + aPiece.characterIdentifier + ConsoleColors.RESET + "  ");
+                        outputBoard.append("  " + ConsoleColors.WHITE_PIECE + aPiece.characterIdentifier + ConsoleColors.RESET + "  ");
                     } else {
-                            outputBoard.append("  " + ConsoleColors.GREEN + aPiece.characterIdentifier + ConsoleColors.RESET + "  ");
+                            outputBoard.append("  " + ConsoleColors.BLACK_PIECE + aPiece.characterIdentifier + ConsoleColors.RESET + "  ");
                     }
                 }
                 outputBoard.append(ConsoleColors.RESET + "|");
@@ -560,7 +733,7 @@ public class ChessBoard {
             outputBoard.append("  |-----|-----|-----|-----|-----|-----|-----|-----|\n");
         }
         outputBoard.append(ConsoleColors.RED + "     a     b     c     d     e     f     g     h   \n" + ConsoleColors.RESET);
-        System.out.println(outputBoard);
+        System.out.print(outputBoard);
     }
 
     public void printControlledSquares(ChessPiece.PieceColor color) {
@@ -673,6 +846,8 @@ public class ChessBoard {
         Integer fileIdx = getFileIdx(piece.file);
         Integer rankIdx = getRankIdx(piece.rank);
         chessPieces[rankIdx][fileIdx] = piece;
+
+        System.out.println("ChessBoard::setPieceAtPosition() adding new " + piece.color + " " + piece.type + " at " + piece.file + piece.rank);
 
         // Add piece to the list of pieces for each team
         if (piece.color == ChessPiece.PieceColor.WHITE) {
