@@ -72,4 +72,13 @@ public class King extends ChessPiece {
         }
     }
 
+    @Override
+    public Boolean canMoveTo(Character file, Character rank, ChessBoard board) {
+        return false;
+    }
+
+    @Override
+    public Boolean canCaptureAt(Character file, Character rank, ChessBoard board) {
+        return false;
+    }
 }

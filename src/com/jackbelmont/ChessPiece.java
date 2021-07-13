@@ -242,4 +242,8 @@ public abstract class ChessPiece {
             - WARNING: Does not take into account the other pieces on the board
     */
     public abstract void refreshPossibleMoves(ChessPiece[][] chessBoard);
+
+    public abstract Boolean canMoveTo(Character file, Character rank, ChessBoard board);
+
+    public abstract Boolean canCaptureAt(Character file, Character rank, ChessBoard board);
 }
