@@ -274,8 +274,13 @@ public class ChessBoard {
         }
     }
 
-    public void refreshPiecesOnBoard() {
-        //Nullify board
+    public void refreshChessBoard() {
+        /*
+            All we need to do in order to move a piece now is to change the pieces file and rank index and then
+            call this function to re-draw the board
+        */
+
+        // First we need to nullify board
         for (Character rank : ranks) {
             for (Character file : files) {
                 Integer rankIdx = getRankIdx(rank);
@@ -497,7 +502,7 @@ public class ChessBoard {
             }
             piece.file = file;
             piece.rank = rank;
-            refreshPiecesOnBoard();
+            refreshChessBoard();
             return true;
         }
 
@@ -597,10 +602,6 @@ public class ChessBoard {
     }
 
     public ChessPiece setPieceAtPosition(ChessPiece piece) {
-        Integer fileIdx = getFileIdx(piece.file);
-        Integer rankIdx = getRankIdx(piece.rank);
-        chessPieces[rankIdx][fileIdx] = piece;
-
         System.out.println("ChessBoard::setPieceAtPosition() adding new " + piece.color + " " + piece.type + " at " + piece.file + piece.rank);
 
         // Add piece to the list of pieces for each team
@@ -611,7 +612,8 @@ public class ChessBoard {
             blackPieces.add(piece);
         }
 
-        refreshAllPieceMoves();
+        // This will update the board with the new piece
+        refreshChessBoard();
 
         return piece;
     }
@@ -636,36 +638,23 @@ public class ChessBoard {
     }
 
     public ChessPiece removePieceAtPosition(Character file, Character rank) {
-        Integer fileIdx = getFileIdx(file);
-        Integer rankIdx = getRankIdx(rank);
         ChessPiece removePiece = null;
-
-        if (fileIdx <= 7 && fileIdx >= 0 && rankIdx <= 7 && rankIdx >= 0) {
-            removePiece = chessPieces[rankIdx][fileIdx];
-
-            if (removePiece != null) {
-                Logger.logStr("ChessPiece::removePieceAtPosition() Removing piece at " + file + rank);
-                chessPieces[rankIdx][fileIdx] = null;
-            } else {
-                Logger.logStr("ChessPiece::removePieceAtPosition() No piece to remove at " + file + rank);
-            }
-        }
 
         // Need to search through white and black pieces to remove piece
         for (int i=0; i<whitePieces.size(); i++) {
             if (whitePieces.get(i).file == file && whitePieces.get(i).rank == rank) {
                 // Found piece - now remove it
-                whitePieces.remove(i);
+                removePiece = whitePieces.remove(i);
             }
         }
         for (int i=0; i<blackPieces.size(); i++) {
             if (blackPieces.get(i).file == file && blackPieces.get(i).rank == rank) {
                 // Found piece - now remove it
-                blackPieces.remove(i);
+                removePiece = blackPieces.remove(i);
             }
         }
 
-        refreshAllPieceMoves();
+        refreshChessBoard();
 
         return removePiece;
     }
