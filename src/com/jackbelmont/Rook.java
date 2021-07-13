@@ -178,12 +178,13 @@ public class Rook extends ChessPiece {
 
                 aRank = (char)((int)aRank + rankDirection);
             }
-            // Dont return true yet - this will be caught down at the bottom for simplicity
+            Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move to " + destString);
+            return true;
         } else if (curRank == rank) {
             Integer fileDirection = ((int)file > (int)curFile) ? 1 : -1;
             Character aFile = (char)((int)this.file + fileDirection);
 
-            while (aFile != rank) {
+            while (aFile != file) {
                 ChessPiece square = board.getPieceAtPosition(aFile, rank);
                 if (square != null) {
                     Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move through " + square.color + " " + square.type + " at " + square.file + square.rank + " to get to " + destString);
@@ -192,19 +193,12 @@ public class Rook extends ChessPiece {
 
                 aFile = (char)((int)aFile + fileDirection);
             }
-            // Dont return true yet - this will be caught down at the bottom for simplicity
+            Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move to " + destString);
+            return true;
         } else {
             Logger.logStr(funcStr + "FAIL: Something went wrong determining if " + thisStr + " is moving along the rank or file");
             return false;
         }
-
-
-
-
-        // If every square in the above loop was null and we havnt returned false then we can make the move
-
-        Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move to " + destString);
-        return true;
     }
 
     @Override

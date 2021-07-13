@@ -231,7 +231,7 @@ public class Pawn extends ChessPiece{
 
     @Override
     public Boolean canCaptureAt(Character file, Character rank, ChessBoard board) {
-        String funcStr = this.type + "::canMoveTo(): ";
+        String funcStr = this.type + "::canCaptureAt(): ";
         String destString = file.toString() + rank.toString();
         String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
 
