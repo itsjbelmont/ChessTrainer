@@ -131,7 +131,80 @@ public class Rook extends ChessPiece {
 
     @Override
     public Boolean canMoveTo(Character file, Character rank, ChessBoard board) {
-        return false;
+        String funcStr = this.type + "::canMoveTo(): ";
+        String destString = file.toString() + rank.toString();
+        String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
+
+        // Sanitize input
+        if (rank < '1' || rank > '8') {
+            Logger.logStr(funcStr + "FAIL: Invalid rank passed: " + rank);
+            return false;
+        } else if (file < 'a' || file > 'h') {
+            Logger.logStr(funcStr + "FAIL: Invalid file passed: " + file);
+            return false;
+        } else if (board == null) {
+            Logger.logStr(funcStr + "FAIL: ChessBoard passed is null!");
+            return false;
+        }
+
+        ChessPiece destination = board.getPieceAtPosition(file, rank);
+        if (destination != null && destination.color == this.color) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " Can not move to a square occupied by friendly piece at " + destString);
+            return false;
+        }
+
+        final Character curFile = this.file;
+        final Character curRank = this.rank;
+
+        // Make sure the destination is on either the current file or the current rank
+        if (file != curFile && rank != curRank) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to " + destString + " which is not on either the current file or the current rank");
+            return false;
+        } else if (file == curFile && rank == curRank) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to its own square");
+            return false;
+        }
+
+        // Either rank or file wont ever move
+        if (curFile == file) {
+            Integer rankDirection = ((int)rank > (int)curRank) ? 1 : -1;
+            Character aRank = (char)((int)this.rank + rankDirection);
+            while (aRank != rank) {
+                ChessPiece square = board.getPieceAtPosition(file, aRank);
+                if (square != null) {
+                    Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move through " + square.color + " " + square.type + " at " + square.file + square.rank + " to get to " + destString);
+                    return false;
+                }
+
+                aRank = (char)((int)aRank + rankDirection);
+            }
+            // Dont return true yet - this will be caught down at the bottom for simplicity
+        } else if (curRank == rank) {
+            Integer fileDirection = ((int)file > (int)curFile) ? 1 : -1;
+            Character aFile = (char)((int)this.file + fileDirection);
+
+            while (aFile != rank) {
+                ChessPiece square = board.getPieceAtPosition(aFile, rank);
+                if (square != null) {
+                    Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move through " + square.color + " " + square.type + " at " + square.file + square.rank + " to get to " + destString);
+                    return false;
+                }
+
+                aFile = (char)((int)aFile + fileDirection);
+            }
+            // Dont return true yet - this will be caught down at the bottom for simplicity
+        } else {
+            Logger.logStr(funcStr + "FAIL: Something went wrong determining if " + thisStr + " is moving along the rank or file");
+            return false;
+        }
+
+
+
+
+        // If every square in the above loop was null and we havnt returned false then we can make the move
+
+        Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move to " + destString);
+        return true;
     }
 
     @Override
