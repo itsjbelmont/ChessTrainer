@@ -601,23 +601,6 @@ public class ChessBoard {
         SwingUtilities.invokeLater(r);
     }
 
-    public ChessPiece setPieceAtPosition(ChessPiece piece) {
-        System.out.println("ChessBoard::setPieceAtPosition() adding new " + piece.color + " " + piece.type + " at " + piece.file + piece.rank);
-
-        // Add piece to the list of pieces for each team
-        if (piece.color == ChessPiece.PieceColor.WHITE) {
-            whitePieces.add(piece);
-        } else {
-            // if its not white, it must be black!
-            blackPieces.add(piece);
-        }
-
-        // This will update the board with the new piece
-        refreshChessBoard();
-
-        return piece;
-    }
-
     public void setMyPieceColor(ChessPiece.PieceColor color) {
         this.myPieceColor = color;
 
@@ -657,6 +640,30 @@ public class ChessBoard {
         refreshChessBoard();
 
         return removePiece;
+    }
+
+    public ChessPiece setPieceAtPosition(ChessPiece piece) {
+
+        ChessPiece square = getPieceAtPosition(piece.file, piece.rank);
+        if (square != null) {
+            System.out.println("ChessBoard::setPieceAtPosition() FAIL: Can not add new " + piece.color + " " + piece.type + " at " + piece.file + piece.rank + " since the square is already occupied by " + square.color + " " + square.type);
+            return null;
+        }
+
+        System.out.println("ChessBoard::setPieceAtPosition() adding new " + piece.color + " " + piece.type + " at " + piece.file + piece.rank);
+
+        // Add piece to the list of pieces for each team
+        if (piece.color == ChessPiece.PieceColor.WHITE) {
+            whitePieces.add(piece);
+        } else {
+            // if its not white, it must be black!
+            blackPieces.add(piece);
+        }
+
+        // This will update the board with the new piece
+        refreshChessBoard();
+
+        return piece;
     }
 
     public static Integer getFileIdx(Character file) {

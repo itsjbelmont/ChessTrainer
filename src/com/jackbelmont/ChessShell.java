@@ -136,6 +136,43 @@ public class ChessShell {
                     if (m.matches()) {
                         chessBoard.move(m.group(1));
                     }
+                    continue;
+                }
+
+                if (Pattern.matches("[a-h][1-8] can move to [a-h][1-8]", command)) {
+                    Pattern p = Pattern.compile("([a-h][1-8]) can move to ([a-h][1-8])");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        Character startFile = m.group(1).charAt(0);
+                        Character startRank = m.group(1).charAt(1);
+                        Character destFile = m.group(2).charAt(0);
+                        Character destRank = m.group(2).charAt(1);
+                        ChessPiece piece = chessBoard.getPieceAtPosition(startFile, startRank);
+                        if (piece == null) {
+                            System.out.println("ChessShell::test(): can  move to: origin square is null!");
+                        } else {
+                            piece.canMoveTo(destFile, destRank, chessBoard);
+                        }
+                    }
+                    continue;
+                }
+
+                if (Pattern.matches("[a-h][1-8] can capture at [a-h][1-8]", command)) {
+                    Pattern p = Pattern.compile("([a-h][1-8]) can capture at ([a-h][1-8])");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        Character startFile = m.group(1).charAt(0);
+                        Character startRank = m.group(1).charAt(1);
+                        Character destFile = m.group(2).charAt(0);
+                        Character destRank = m.group(2).charAt(1);
+                        ChessPiece piece = chessBoard.getPieceAtPosition(startFile, startRank);
+                        if (piece == null) {
+                            System.out.println("ChessShell::test(): can  move to: origin square is null!");
+                        } else {
+                            piece.canCaptureAt(destFile, destRank, chessBoard);
+                        }
+                    }
+                    continue;
                 }
 
                 if (Pattern.matches("add (white|black) (pawn|rook|knight|bishop|king|queen) at [a-h][1-8]", command)) {

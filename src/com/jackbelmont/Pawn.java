@@ -1,6 +1,7 @@
 package com.jackbelmont;
 
 import javax.swing.*;
+import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -166,12 +167,116 @@ public class Pawn extends ChessPiece{
 
     @Override
     public Boolean canMoveTo(Character file, Character rank, ChessBoard board) {
-        return false;
+        String funcStr = this.type + "::canMoveTo(): ";
+        String destString = file.toString() + rank.toString();
+        String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
+
+        // Sanitize input
+        if (rank < '1' || rank > '8') {
+            Logger.logStr(funcStr + "FAIL: Invalid rank passed: " + rank);
+            return false;
+        } else if (file < 'a' || file > 'h') {
+            Logger.logStr(funcStr + "FAIL: Invalid file passed: " + file);
+            return false;
+        } else if (board == null) {
+            Logger.logStr(funcStr + "FAIL: ChessBoard passed is null!");
+            return false;
+        }
+
+        ChessPiece destination = board.getPieceAtPosition(file, rank);
+        if (destination != null && destination.color == this.color) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " Can not move to a square occupied by friendly piece at " + destString);
+            return false;
+        }
+
+        final Character curFile = this.file;
+        final Character curRank = this.rank;
+        final Character startRank = (this.color == PieceColor.WHITE) ? '2' : '7';
+
+        // Get intended piece direction since pawns only move forward (white up vs black down)
+        Integer direction = (this.color == PieceColor.WHITE) ? 1 : -1;
+
+        if (rank - curRank == direction && curFile == file) {
+            if (destination == null) {
+                Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move to " + destString);
+                return true;
+            } else {
+                Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to an occupied square at " + destString);
+                return false;
+            }
+        } else if ((rank - curRank) == (direction * 2) && curRank == startRank && curFile == file) {
+            ChessPiece middleSquare = board.getPieceAtPosition(file, (char)((int)curRank + direction));
+            if (middleSquare == null && destination == null) {
+                Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move to " + destString);
+                return true;
+            } else {
+                Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to " + destString + " since a pawn can only move 2 squares forward if both squares are empty");
+                return false;
+            }
+        } else if (rank - curRank == direction && abs(curFile - file) == 1) {
+            // Captures on the diagonal
+            if (destination.color != this.color) {
+                Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move diagonal to capture a piece");
+                return true;
+            } else {
+                Logger.logStr(funcStr + "FAIL: " + thisStr + " would only move diagonal to capture an enemy piece");
+                return false;
+            }
+
+        } else {
+            Logger.logStr(funcStr + "FAIL: pawns can only move 1 square forward [or 2 if they are on the back rank] - " + "rank: " + rank + " curRank: " + curRank + " direction: " + direction);
+            return false;
+        }
     }
 
     @Override
     public Boolean canCaptureAt(Character file, Character rank, ChessBoard board) {
-        return false;
+        String funcStr = this.type + "::canMoveTo(): ";
+        String destString = file.toString() + rank.toString();
+        String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
+
+        // Sanitize input
+        if (rank < '1' || rank > '8') {
+            Logger.logStr(funcStr + "FAIL: Invalid rank passed: " + rank);
+            return false;
+        } else if (file < 'a' || file > 'h') {
+            Logger.logStr(funcStr + "FAIL: Invalid file passed: " + file);
+            return false;
+        } else if (board == null) {
+            Logger.logStr(funcStr + "FAIL: ChessBoard passed is null!");
+            return false;
+        }
+
+        ChessPiece destination = board.getPieceAtPosition(file, rank);
+        if (destination == null) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " Can not capture on an empty square at " + destString);
+            return false;
+        } else if (destination != null && destination.color == this.color) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " Can not capture on square occupied by friendly piece at " + destString);
+            return false;
+        }
+
+        final Character curFile = this.file;
+        final Character curRank = this.rank;
+
+        // Get intended piece direction since pawns only move forward (white up vs black down)
+        Integer direction = (this.color == PieceColor.WHITE) ? 1 : -1;
+
+        if (rank - curRank == direction && abs(curFile - file) == 1) {
+            // Captures on the diagonal
+            if (destination.color != this.color) {
+                Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can capture a piece at " + destString);
+                return true;
+            } else {
+                Logger.logStr(funcStr + "FAIL: " + thisStr + " can only capture on a square with an enemy piece: " + destString);
+                return false;
+            }
+
+        } else {
+            Logger.logStr(funcStr + "FAIL: pawns can only capture one-diagonal away");
+            return false;
+        }
+        //TODO: en-pesant
     }
 
 }
