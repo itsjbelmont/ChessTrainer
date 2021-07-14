@@ -311,6 +311,18 @@ public class Queen extends ChessPiece {
 
     @Override
     public Boolean canCaptureAt(Character file, Character rank, ChessBoard board) {
-        return false;
+        String funcStr = this.type + "::canCaptureAt(): ";
+        String destString = file.toString() + rank.toString();
+        String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
+
+        // Can capture on any square that it can move to and contains an enemy piece
+        ChessPiece dest = board.getPieceAtPosition(file, rank);
+        if (this.canMoveTo(file, rank, board) && dest != null && dest.color != this.color) {
+            Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can capture at " + destString);
+            return true;
+        } else {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not capture at " + destString);
+            return false;
+        }
     }
 }
