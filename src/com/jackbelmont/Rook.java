@@ -149,7 +149,7 @@ public class Rook extends ChessPiece {
 
         ChessPiece destination = board.getPieceAtPosition(file, rank);
         if (destination != null && destination.color == this.color) {
-            Logger.logStr(funcStr + "FAIL: " + thisStr + " Can not move to a square occupied by friendly piece at " + destString);
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to a square occupied by friendly piece at " + destString);
             return false;
         }
 
@@ -161,6 +161,7 @@ public class Rook extends ChessPiece {
             Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to " + destString + " which is not on either the current file or the current rank");
             return false;
         } else if (file == curFile && rank == curRank) {
+            // Probably can not get get but keep for sanity
             Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to its own square");
             return false;
         }
@@ -203,6 +204,18 @@ public class Rook extends ChessPiece {
 
     @Override
     public Boolean canCaptureAt(Character file, Character rank, ChessBoard board) {
-        return false;
+        String funcStr = this.type + "::canCaptureAt(): ";
+        String destString = file.toString() + rank.toString();
+        String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
+
+        // Can capture on any square that it can move to and contains an enemy piece
+        ChessPiece dest = board.getPieceAtPosition(file, rank);
+        if (this.canMoveTo(file, rank, board) && dest != null && dest.color != this.color) {
+            Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can capture at " + destString);
+            return true;
+        } else {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not capture at " + destString);
+            return false;
+        }
     }
 }
