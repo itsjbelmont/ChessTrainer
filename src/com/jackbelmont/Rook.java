@@ -218,4 +218,29 @@ public class Rook extends ChessPiece {
             return false;
         }
     }
+
+    @Override
+    public Boolean controlsSquare(Character file, Character rank, ChessBoard board) {
+        String funcStr = this.type + "::controlsSquare(): ";
+        String destString = file.toString() + rank.toString();
+        String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
+
+        // Sanitize input
+        if (rank < '1' || rank > '8') {
+            Logger.logStr(funcStr + "FAIL: Invalid rank passed: " + rank);
+            return false;
+        } else if (file < 'a' || file > 'h') {
+            Logger.logStr(funcStr + "FAIL: Invalid file passed: " + file);
+            return false;
+        } else if (board == null) {
+            Logger.logStr(funcStr + "FAIL: ChessBoard passed is null!");
+            return false;
+        }
+
+        final Character curFile = this.file;
+        final Character curRank = this.rank;
+
+        Logger.logStr(funcStr + "FAIL: Not yet implemented");
+        return false;
+    }
 }

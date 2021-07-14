@@ -2,6 +2,8 @@ package com.jackbelmont;
 
 import javax.swing.*;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 import static java.lang.Math.abs;
 
@@ -74,11 +76,86 @@ public class King extends ChessPiece {
 
     @Override
     public Boolean canMoveTo(Character file, Character rank, ChessBoard board) {
-        return false;
+        String funcStr = this.type + "::canMoveTo(): ";
+        String destString = file.toString() + rank.toString();
+        String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
+
+        // Sanitize input
+        if (rank < '1' || rank > '8') {
+            Logger.logStr(funcStr + "FAIL: Invalid rank passed: " + rank);
+            return false;
+        } else if (file < 'a' || file > 'h') {
+            Logger.logStr(funcStr + "FAIL: Invalid file passed: " + file);
+            return false;
+        } else if (board == null) {
+            Logger.logStr(funcStr + "FAIL: ChessBoard passed is null!");
+            return false;
+        }
+
+        ChessPiece destination = board.getPieceAtPosition(file, rank);
+        if (destination != null && destination.color == this.color) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to a square occupied by friendly piece at " + destString);
+            return false;
+        }
+
+        final Character curFile = this.file;
+        final Character curRank = this.rank;
+
+        if (file == curFile && rank == curRank) {
+            // Probably cant get here due to checking the color in previous if statement but leave it for sanity
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to its own square.");
+            return false;
+        }else if (abs(file - curFile) <= 1 && abs(rank - curRank) <= 1) {
+            ArrayList<ChessPiece> enemyPieces = (this.color == PieceColor.WHITE) ? board.getBlackPieces() : board.getWhitePieces();
+            for (ChessPiece piece : enemyPieces) {
+
+                /* This needs to be re-worked to account for pawns: Possibly a controlsSquare() function in ChessPiece
+                if (piece.canMoveTo(file, rank, board)) {
+                    Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to square that is defended by an enemy piece");
+                    return false;
+                }
+                */
+            }
+            Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move to " + destString);
+            return true;
+        } else {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can only move to squares that are immediately bordering.");
+            return false;
+        }
     }
 
     @Override
     public Boolean canCaptureAt(Character file, Character rank, ChessBoard board) {
+        String funcStr = this.type + "::canCaptureAt(): ";
+        String destString = file.toString() + rank.toString();
+        String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
+
+        Logger.logStr(funcStr + "FAIL: Not yet implemented!");
+        return false;
+    }
+
+    @Override
+    public Boolean controlsSquare(Character file, Character rank, ChessBoard board) {
+        String funcStr = this.type + "::controlsSquare(): ";
+        String destString = file.toString() + rank.toString();
+        String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
+
+        // Sanitize input
+        if (rank < '1' || rank > '8') {
+            Logger.logStr(funcStr + "FAIL: Invalid rank passed: " + rank);
+            return false;
+        } else if (file < 'a' || file > 'h') {
+            Logger.logStr(funcStr + "FAIL: Invalid file passed: " + file);
+            return false;
+        } else if (board == null) {
+            Logger.logStr(funcStr + "FAIL: ChessBoard passed is null!");
+            return false;
+        }
+
+        final Character curFile = this.file;
+        final Character curRank = this.rank;
+
+        Logger.logStr(funcStr + "FAIL: Not yet implemented");
         return false;
     }
 }

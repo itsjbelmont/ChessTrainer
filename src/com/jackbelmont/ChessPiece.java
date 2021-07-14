@@ -246,4 +246,7 @@ public abstract class ChessPiece {
     public abstract Boolean canMoveTo(Character file, Character rank, ChessBoard board);
 
     public abstract Boolean canCaptureAt(Character file, Character rank, ChessBoard board);
+
+    // Used to determine if a square is defended by the enemy (important for checking king moves)
+    public abstract Boolean controlsSquare(Character file, Character rank, ChessBoard board);
 }

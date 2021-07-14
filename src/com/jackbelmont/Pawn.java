@@ -222,7 +222,6 @@ public class Pawn extends ChessPiece{
                 Logger.logStr(funcStr + "FAIL: " + thisStr + " would only move diagonal to capture an enemy piece");
                 return false;
             }
-
         } else {
             Logger.logStr(funcStr + "FAIL: pawns can only move 1 square forward [or 2 if they are on the back rank] - " + "rank: " + rank + " curRank: " + curRank + " direction: " + direction);
             return false;
@@ -277,6 +276,39 @@ public class Pawn extends ChessPiece{
             return false;
         }
         //TODO: en-pesant
+    }
+
+    @Override
+    public Boolean controlsSquare(Character file, Character rank, ChessBoard board) {
+        String funcStr = this.type + "::controlsSquare(): ";
+        String destString = file.toString() + rank.toString();
+        String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
+
+        // Sanitize input
+        if (rank < '1' || rank > '8') {
+            Logger.logStr(funcStr + "FAIL: Invalid rank passed: " + rank);
+            return false;
+        } else if (file < 'a' || file > 'h') {
+            Logger.logStr(funcStr + "FAIL: Invalid file passed: " + file);
+            return false;
+        } else if (board == null) {
+            Logger.logStr(funcStr + "FAIL: ChessBoard passed is null!");
+            return false;
+        }
+
+        // Get intended piece direction since pawns only move forward (white up vs black down)
+        Integer direction = (this.color == PieceColor.WHITE) ? 1 : -1;
+
+        final Character curFile = this.file;
+        final Character curRank = this.rank;
+        if (rank - curRank == direction && abs(curFile - file) == 1) {
+            // Any square diagonally in front of the pawn is controlled by it
+            Logger.logStr(funcStr + "SUCCESS: " + thisStr + " controls square at " + destString);
+            return true;
+        } else {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can only control squares on one diagonal in front of it");
+            return false;
+        }
     }
 
 }
