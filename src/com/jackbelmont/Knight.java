@@ -138,10 +138,17 @@ public class Knight extends ChessPiece {
             return false;
         }
 
+        // It doesnt matter if a friendly piece, enemy piece, or no piece is on the square for it to be controlled
+
         final Character curFile = this.file;
         final Character curRank = this.rank;
 
-        Logger.logStr(funcStr + "FAIL: Not yet implemented");
-        return false;
+        if ((abs(file-curFile) == 2 && abs(rank-curRank) == 1) || (abs(file-curFile) == 1 && abs(rank-curRank) == 2)) {
+            Logger.logStr(funcStr + "SUCCESS: " + thisStr + " controls square " + destString);
+            return true;
+        } else {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can only control in an L shape");
+            return false;
+        }
     }
 }

@@ -304,7 +304,7 @@ public class Queen extends ChessPiece {
             Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move to " + destString);
             return true;
         } else {
-            Logger.logStr(funcStr + "FAIL: Something went wrong determining if " + thisStr + " is moving along the rank or file");
+            Logger.logStr(funcStr + "FAIL: Something went wrong determining if " + thisStr + " is moving along the rank, file, or diagonal");
             return false;
         }
     }
@@ -344,10 +344,73 @@ public class Queen extends ChessPiece {
             return false;
         }
 
+        // It doesnt matter if a friendly piece, enemy piece, or no piece is on the square for it to be controlled
+
         final Character curFile = this.file;
         final Character curRank = this.rank;
 
-        Logger.logStr(funcStr + "FAIL: Not yet implemented");
-        return false;
+        // Make sure the destination is on either the current file or the current rank
+        if (file != curFile && rank != curRank && abs(file - curFile) != abs(rank - curRank)) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not control " + destString + " which is not on either the current file, the current rank, or the diagonal");
+            return false;
+        } else if (file == curFile && rank == curRank) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not control its own square");
+            return false;
+        }
+
+        if (curFile == file) {
+            // Move up or down the ranks on the current file
+            Integer rankDirection = ((int)rank > (int)curRank) ? 1 : -1;
+            Character aRank = (char)((int)this.rank + rankDirection);
+            while (aRank != rank) {
+                ChessPiece square = board.getPieceAtPosition(file, aRank);
+                if (square != null) {
+                    Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move through " + square.color + " " + square.type + " at " + square.file + square.rank + " to control " + destString);
+                    return false;
+                }
+
+                aRank = (char)((int)aRank + rankDirection);
+            }
+            Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can control " + destString);
+            return true;
+        } else if (curRank == rank) {
+            // Move accross the files on the current rank
+            Integer fileDirection = ((int) file > (int) curFile) ? 1 : -1;
+            Character aFile = (char) ((int) this.file + fileDirection);
+
+            while (aFile != file) {
+                ChessPiece square = board.getPieceAtPosition(aFile, rank);
+                if (square != null) {
+                    Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move through " + square.color + " " + square.type + " at " + square.file + square.rank + " to control " + destString);
+                    return false;
+                }
+
+                aFile = (char) ((int) aFile + fileDirection);
+            }
+            Logger.logStr(funcStr + "SUCCESS: " + thisStr + " controls square " + destString);
+            return true;
+        } else if (abs(file - curFile) == abs(rank - curRank)) {
+            // Moving on the diagonal
+            Integer rankDirection = ((int)rank > (int)curRank) ? 1 : -1;
+            Integer fileDirection = ((int)file > (int)curFile) ? 1 : -1;
+            Character aRank = (char)((int)this.rank + rankDirection);
+            Character aFile = (char)((int)this.file + fileDirection);
+            while (aRank != rank && aFile != file) {
+                ChessPiece square = board.getPieceAtPosition(aFile, aRank);
+                if (square != null) {
+                    Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move through " + square.color + " " + square.type + " at " + square.file + square.rank + " to control " + destString);
+                    return false;
+                }
+
+                aFile = (char)((int)aFile + fileDirection);
+                aRank = (char)((int)aRank + rankDirection);
+            }
+
+            Logger.logStr(funcStr + "SUCCESS: " + thisStr + " controls " + destString);
+            return true;
+        } else {
+            Logger.logStr(funcStr + "FAIL: Something went wrong determining if " + thisStr + " is moving along the rank, file, or diagonal");
+            return false;
+        }
     }
 }

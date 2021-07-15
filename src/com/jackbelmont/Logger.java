@@ -8,12 +8,16 @@ public class Logger {
     private boolean enableInstanceConsoleLog = false;
     Logger() { }
 
-    public static void enableConsoleLogging() {
+    public static Boolean enableConsoleLogging() {
+        Boolean previousStatus = enableConsoleLog;
         enableConsoleLog = true;
+        return previousStatus;
     }
 
-    public static void disableConsoleLogging() {
+    public static Boolean disableConsoleLogging() {
+        Boolean previousStatus = enableConsoleLog;
         enableConsoleLog = false;
+        return previousStatus;
     }
 
     public void enableInstanceConsoleLogging() {
@@ -23,6 +27,8 @@ public class Logger {
     public void disableInstanceConsoleLogging() {
         this.enableInstanceConsoleLog = false;
     }
+
+    public boolean getConsoleLoggingStatus() {return enableConsoleLog;}
 
     public void iLogStr(String str) {
         if (enableInstanceConsoleLog) {

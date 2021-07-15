@@ -222,10 +222,32 @@ public class Bishop extends ChessPiece {
             return false;
         }
 
+        // It doesnt matter if a friendly piece, enemy piece, or no piece is on the square for it to be controlled
+
         final Character curFile = this.file;
         final Character curRank = this.rank;
 
-        Logger.logStr(funcStr + "FAIL: Not yet implemented");
-        return false;
+        if (abs(file - curFile) != abs(rank - curRank)) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to " + destString + " which is not on the diagonal of the current piece");
+            return false;
+        }
+
+        Integer rankDirection = ((int)rank > (int)curRank) ? 1 : -1;
+        Integer fileDirection = ((int)file > (int)curFile) ? 1 : -1;
+        Character aRank = (char)((int)this.rank + rankDirection);
+        Character aFile = (char)((int)this.file + fileDirection);
+        while (aRank != rank && aFile != file) {
+            ChessPiece square = board.getPieceAtPosition(aFile, aRank);
+            if (square != null) {
+                Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move through " + square.color + " " + square.type + " at " + square.file + square.rank + " to get to " + destString);
+                return false;
+            }
+
+            aFile = (char)((int)aFile + fileDirection);
+            aRank = (char)((int)aRank + rankDirection);
+        }
+
+        Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move to " + destString);
+        return true;
     }
 }

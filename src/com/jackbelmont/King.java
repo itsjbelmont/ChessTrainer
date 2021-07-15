@@ -107,15 +107,15 @@ public class King extends ChessPiece {
             return false;
         }else if (abs(file - curFile) <= 1 && abs(rank - curRank) <= 1) {
             ArrayList<ChessPiece> enemyPieces = (this.color == PieceColor.WHITE) ? board.getBlackPieces() : board.getWhitePieces();
+            Boolean previousLoggingStatus = Logger.disableConsoleLogging();
             for (ChessPiece piece : enemyPieces) {
-
-                /* This needs to be re-worked to account for pawns: Possibly a controlsSquare() function in ChessPiece
-                if (piece.canMoveTo(file, rank, board)) {
-                    Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to square that is defended by an enemy piece");
+                if (piece.controlsSquare(file, rank, board)) {
+                    if (previousLoggingStatus) {Logger.enableConsoleLogging();}
+                    Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to square that is defended by an enemy piece: " + piece.color + " " + piece.type + " on " + piece.file + piece.rank);
                     return false;
                 }
-                */
             }
+            if (previousLoggingStatus) {Logger.enableConsoleLogging();}
             Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move to " + destString);
             return true;
         } else {
@@ -136,7 +136,7 @@ public class King extends ChessPiece {
 
     @Override
     public Boolean controlsSquare(Character file, Character rank, ChessBoard board) {
-        String funcStr = this.type + "::controlsSquare(): ";
+        String funcStr = this.type + "::canMoveTo(): ";
         String destString = file.toString() + rank.toString();
         String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
 
@@ -152,10 +152,21 @@ public class King extends ChessPiece {
             return false;
         }
 
+        // It doesnt matter if a friendly piece, enemy piece, or no piece is on the square for it to be controlled
+
         final Character curFile = this.file;
         final Character curRank = this.rank;
 
-        Logger.logStr(funcStr + "FAIL: Not yet implemented");
-        return false;
+        if (file == curFile && rank == curRank) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not control its own square.");
+            return false;
+        }else if (abs(file - curFile) <= 1 && abs(rank - curRank) <= 1) {
+            //King controls all neighboring squares
+            Logger.logStr(funcStr + "SUCCESS: " + thisStr + " controls" + destString);
+            return true;
+        } else {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can only control that are immediately bordering.");
+            return false;
+        }
     }
 }
