@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 
 import static java.lang.Math.abs;
 
@@ -315,7 +316,11 @@ public class ChessBoard {
         ChessPiece.PieceType promotionType = null;
         String logStr = "ChessBoard::move() ";
 
+        /* Regular Expressions for chess notation move strings */
         String pawnMoveStr = "^([a-h])(x([a-h]))?([1-8])(=?([kqrbn]))?";
+        String majorPieceMoveStr = "^([nrbq])([a-h][1-8])?(x)?([a-h][1-8])";
+        String kingPieceMoveStr = "^k(x)?([a-h][1-8])";
+
         if (Pattern.matches(pawnMoveStr,command)) {
             Pattern p = Pattern.compile(pawnMoveStr);
             Matcher m = p.matcher(command);
@@ -426,6 +431,25 @@ public class ChessBoard {
                 System.out.println("ChessBoard::move() something went wrong matching pawn movement string!");
                 return false;
             }
+        } else if (Pattern.matches(majorPieceMoveStr,command)) {
+            Pattern p = Pattern.compile(majorPieceMoveStr);
+            Matcher m = p.matcher(command);
+
+            if (m.matches()) {
+                System.out.println("ChessBoard::move() " + m.group(1) + " " + m.group(2) + " " + m.group(3) + " " + m.group(4));
+            }
+            System.out.println("ChessBoard::move() NOT YET IMPLEMENTED FOR KNIGHT, ROOK, BISHOP, QUEEN");
+            return false;
+
+        } else if (Pattern.matches(kingPieceMoveStr,command)) {
+            Pattern p = Pattern.compile(kingPieceMoveStr);
+            Matcher m = p.matcher(command);
+
+            if (m.matches()) {
+                System.out.println("ChessBoard::move() " + m.group(1) + " " + m.group(2));
+            }
+            System.out.println("ChessBoard::move() NOT YET IMPLEMENTED FOR KING");
+            return false;
         }
 
         /* Perform the specified move! */
