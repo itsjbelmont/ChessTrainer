@@ -130,8 +130,51 @@ public class King extends ChessPiece {
         String destString = file.toString() + rank.toString();
         String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
 
-        Logger.logStr(funcStr + "FAIL: Not yet implemented!");
-        return false;
+        // Sanitize input
+        if (rank < '1' || rank > '8') {
+            Logger.logStr(funcStr + "FAIL: Invalid rank passed: " + rank);
+            return false;
+        } else if (file < 'a' || file > 'h') {
+            Logger.logStr(funcStr + "FAIL: Invalid file passed: " + file);
+            return false;
+        } else if (board == null) {
+            Logger.logStr(funcStr + "FAIL: ChessBoard passed is null!");
+            return false;
+        }
+
+        ChessPiece destination = board.getPieceAtPosition(file, rank);
+        if (destination == null) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not capture on an empty string at " + destString);
+            return false;
+        } else if (destination.color == this.color) {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to a square occupied by friendly piece at " + destString);
+            return false;
+        }
+
+        final Character curFile = this.file;
+        final Character curRank = this.rank;
+
+        if (file == curFile && rank == curRank) {
+            // Probably cant get here due to checking the color in previous if statement but leave it for sanity
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to its own square.");
+            return false;
+        }else if (abs(file - curFile) <= 1 && abs(rank - curRank) <= 1) {
+            ArrayList<ChessPiece> enemyPieces = (this.color == PieceColor.WHITE) ? board.getBlackPieces() : board.getWhitePieces();
+            Boolean previousLoggingStatus = Logger.disableConsoleLogging();
+            for (ChessPiece piece : enemyPieces) {
+                if (piece.controlsSquare(file, rank, board)) {
+                    if (previousLoggingStatus) {Logger.enableConsoleLogging();}
+                    Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to square that is defended by an enemy piece: " + piece.color + " " + piece.type + " on " + piece.file + piece.rank);
+                    return false;
+                }
+            }
+            if (previousLoggingStatus) {Logger.enableConsoleLogging();}
+            Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move to " + destString);
+            return true;
+        } else {
+            Logger.logStr(funcStr + "FAIL: " + thisStr + " can only move to squares that are immediately bordering.");
+            return false;
+        }
     }
 
     @Override

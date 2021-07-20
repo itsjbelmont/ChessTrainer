@@ -215,7 +215,10 @@ public class Pawn extends ChessPiece{
             }
         } else if (rank - curRank == direction && abs(curFile - file) == 1) {
             // Captures on the diagonal
-            if (destination.color != this.color) {
+            if (destination == null) {
+                Logger.logStr(funcStr + "FAIL: " + thisStr + " can only capture if the square contains an enemy piece");
+                return false;
+            } else if (destination.color != this.color) {
                 Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move diagonal to capture a piece");
                 return true;
             } else {

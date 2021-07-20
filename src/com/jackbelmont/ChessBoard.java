@@ -318,7 +318,7 @@ public class ChessBoard {
 
         /* Regular Expressions for chess notation move strings */
         String pawnMoveStr = "^([a-h])(x([a-h]))?([1-8])(=?([kqrbn]))?";
-        String majorPieceMoveStr = "^([nrbq])([a-h][1-8])?(x)?([a-h][1-8])";
+        String majorPieceMoveStr = "^([nrbq])([a-h])?([1-8])?(x)?([a-h][1-8])";
         String kingPieceMoveStr = "^k(x)?([a-h][1-8])";
 
         if (Pattern.matches(pawnMoveStr,command)) {
@@ -371,9 +371,9 @@ public class ChessBoard {
                     if (piece.type == type && piece.getFile() == originFile) {
                         Boolean pieceCanMakeMove = false;
                         if ( capture ) {
-                            pieceCanMakeMove = piece.canCaptureAt(destinationFile, destinationRank);
+                            pieceCanMakeMove = piece.canCaptureAt(destinationFile, destinationRank, this);
                         } else {
-                            pieceCanMakeMove = piece.canMoveTo(destinationFile, destinationRank);
+                            pieceCanMakeMove = piece.canMoveTo(destinationFile, destinationRank, this);
                         }
 
                         if (pieceCanMakeMove) {
@@ -436,26 +436,149 @@ public class ChessBoard {
             Matcher m = p.matcher(command);
 
             if (m.matches()) {
-                System.out.println("ChessBoard::move() " + m.group(1) + " " + m.group(2) + " " + m.group(3) + " " + m.group(4));
-            }
-            System.out.println("ChessBoard::move() NOT YET IMPLEMENTED FOR KNIGHT, ROOK, BISHOP, QUEEN");
-            return false;
+                // Get the piece type that we are trying to move
+                switch(m.group(1).charAt(0)) {
+                    case 'r': type = ChessPiece.PieceType.ROOK; break;
+                    case 'n': type = ChessPiece.PieceType.KNIGHT; break;
+                    case 'b': type = ChessPiece.PieceType.BISHOP; break;
+                    case 'q': type = ChessPiece.PieceType.QUEEN; break;
+                    default:
+                        System.out.println("ChessBoard::move() Failed to get they pice type you tried to move");
+                        return false;
+                }
 
+                // Determine if capture is specified
+                if (m.group(4) != null) {
+                    capture = true;
+                }
+
+                // Get destination square
+                if (m.group(5) != null) {
+                    destinationFile = m.group(5).charAt(0);
+                    destinationRank = m.group(5).charAt(1);
+                } else {
+                    System.out.println("ChessBoard::move() Failed to get the destination square information");
+                    return false;
+                }
+
+                // If origin squares were specified grab them now
+                if (m.group(2) != null) {
+                    originFile = m.group(2).charAt(0);
+                }
+                if (m.group(3) != null) {
+                    originRank = m.group(3).charAt(0);
+                }
+
+                //Find the piece we are trying to move
+                ArrayList<ChessPiece> piecesThatCanMakeMove = new ArrayList<>();
+                ArrayList<ChessPiece> thisColorPieces = (whosTurn == ChessPiece.PieceColor.WHITE) ? this.whitePieces : this.blackPieces;
+                for (ChessPiece piece : thisColorPieces) {
+                    // Continue if the pice isnt the right type
+                    if (piece.type != type) {
+                        continue;
+                    }
+
+                    // filter by rank if it was specified
+                    if (originRank != null) {
+                        if (piece.rank != originRank) {
+                           continue;
+                        }
+                    }
+                    // Filter by file if it was specified
+                    if (originFile != null) {
+                        if (piece.file != originFile) {
+                            continue;
+                        }
+                    }
+                    if (capture) {
+                        if (piece.canCaptureAt(destinationFile, destinationRank, this)) {
+                             piecesThatCanMakeMove.add(piece);
+                        }
+                    } else {
+                        if(piece.canMoveTo(destinationFile, destinationRank, this)) {
+                            piecesThatCanMakeMove.add(piece);
+                       }
+                    }
+                }
+
+                if(piecesThatCanMakeMove.size() < 1) {
+                    System.out.println("ChessBoard::move() FAIL: No pieces can make the specified move");
+                    return false;
+                } else if (piecesThatCanMakeMove.size() > 1) {
+                    System.out.println("ChessBoard::move() FAIL: Too many pieces can make the specified move");
+                    return false;
+                } else {
+                    pieceToMove = piecesThatCanMakeMove.get(0);
+                    logStr = logStr + "Moving " + pieceToMove.color + " " + pieceToMove.type + " at " + pieceToMove.file + pieceToMove.rank + " with capture=" + capture + " to " + destinationFile + destinationRank;
+                }
+            }
         } else if (Pattern.matches(kingPieceMoveStr,command)) {
             Pattern p = Pattern.compile(kingPieceMoveStr);
             Matcher m = p.matcher(command);
 
             if (m.matches()) {
                 System.out.println("ChessBoard::move() " + m.group(1) + " " + m.group(2));
+                ChessPiece king = null;
+
+                // Get the king from all pieces
+                ArrayList<ChessPiece> myPieces = (whosTurn == ChessPiece.PieceColor.WHITE) ? whitePieces : blackPieces;
+                for (ChessPiece piece : myPieces) {
+                    if (piece.type == ChessPiece.PieceType.KING) {
+                        king = piece;
+                    }
+                }
+
+                if (king == null) {
+                    System.out.println("ChessBoard::move() FAIL: Couldnt find king for " + whosTurn + " pieces");
+                    return false;
+                }
+
+                if (m.group(1) != null){
+                    capture = true;
+                }
+
+                if (m.group(2) != null) {
+                    destinationFile = m.group(2).charAt(0);
+                    destinationRank = m.group(2).charAt(1);
+                } else {
+                    System.out.println("ChessBoard::move() FAIL: couldnt get the destination square");
+                    return false;
+                }
+
+                // Make sure the king can make the move
+                if (capture) {
+                    if (!king.canCaptureAt(destinationFile, destinationRank, this)) {
+                        System.out.println("ChessBoard::move() FAIL: king can not capture on " + destinationFile + destinationRank);
+                        return false;
+                    }
+                } else {
+                    if (!king.canMoveTo(destinationFile, destinationRank, this)) {
+                        System.out.println("ChessBoard::move() FAIL: king can not move to " + destinationFile + destinationRank);
+                        return false;
+                    }
+                }
+
+                // move the king
+                pieceToMove = king;
+                logStr = logStr + "moving " + pieceToMove.color + " " + pieceToMove.type + " at " + pieceToMove.file + pieceToMove.rank + " to " + destinationFile + destinationRank;
             }
-            System.out.println("ChessBoard::move() NOT YET IMPLEMENTED FOR KING");
+        } else if (Pattern.matches("O-O-O", command) || Pattern.matches("0-0-0", command)) {
+            // Long castle
+            System.out.println("ChessBoard::move() LONG CASTLE NOT YET IMPLEMENTED");
+            return false;
+        } else if (Pattern.matches("O-O", command) || Pattern.matches("0-0", command)) {
+            // Short castle
+            System.out.println("ChessBoard::move() SHORT CASTLE NOT YET IMPLEMENTED");
             return false;
         }
 
-        /* Perform the specified move! */
+    /* Perform the specified move! */
         System.out.println(logStr);
         if (pieceToMove != null) {
             movePiece(pieceToMove, destinationFile, destinationRank);
+        } else {
+            System.out.println("ChessBoard::move() FAILED: Piece determined for the move is NULL");
+            return false;
         }
 
         if (promotion) {
