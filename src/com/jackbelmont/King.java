@@ -110,12 +110,16 @@ public class King extends ChessPiece {
             Boolean previousLoggingStatus = Logger.disableConsoleLogging();
             for (ChessPiece piece : enemyPieces) {
                 if (piece.controlsSquare(file, rank, board)) {
-                    if (previousLoggingStatus) {Logger.enableConsoleLogging();}
+                    if (previousLoggingStatus) {
+                        Logger.enableConsoleLogging();
+                    }
                     Logger.logStr(funcStr + "FAIL: " + thisStr + " can not move to square that is defended by an enemy piece: " + piece.color + " " + piece.type + " on " + piece.file + piece.rank);
                     return false;
                 }
             }
-            if (previousLoggingStatus) {Logger.enableConsoleLogging();}
+            if (previousLoggingStatus) {
+                Logger.enableConsoleLogging();
+            }
             Logger.logStr(funcStr + "SUCCESS: " + thisStr + " can move to " + destString);
             return true;
         } else {
@@ -212,4 +216,129 @@ public class King extends ChessPiece {
             return false;
         }
     }
+
+    @Override
+    public Boolean canShortCastle(ChessBoard board) {
+        String funcStr = this.type + "::canShortCastle(): ";
+        String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
+
+        // get the enemy pieces
+        ArrayList<ChessPiece> enemyPieces = (this.color == PieceColor.WHITE) ? board.getBlackPieces() : board.getWhitePieces();
+
+        // All castling movements happen on the back rank
+        final Character backRank = (this.color == PieceColor.WHITE) ? '1' : '8';
+
+        // Destination for short castle is on the 'g' file
+        final Character destFile = 'g';
+
+        // initial king position
+        final Character startFile = 'e';
+
+        // initial rook file
+        final Character rookFile = 'h';
+
+        // Get final values for the current position of the king
+        final Character curFile = this.file;
+        final Character curRank = this.rank;
+
+        // Make sure the king is on starting square
+        if (curFile != startFile || curRank != backRank) {
+            System.out.println(funcStr + "FAIL: can not castle when the king is no longer on the starting square");
+            return false;
+        }
+
+        // Make sure the friendly rook is still on its starting square
+        ChessPiece rook = board.getPieceAtPosition(rookFile, backRank);
+        if (rook == null || rook.type != PieceType.ROOK || rook.color != this.color) {
+            System.out.println(funcStr + "FAIL: couldnt verify that the rook is on its starting square for a short castle");
+            return false;
+        }
+
+        // In order to castle all squares between the rook and the king must be empty and not-attacked by the opponent
+        Character fileIterator = 'f';
+        while (fileIterator != rookFile) {
+            ChessPiece square = board.getPieceAtPosition(fileIterator, backRank);
+
+            // All intermediate squares must be null
+            if (square != null) {
+                System.out.println(funcStr + "FAIL: Can not castle through " + square.type + " at " + square.file + square.rank);
+                return false;
+            }
+
+            // Iterate through enemy pieces and make sure no piece attacks this square
+            for (ChessPiece piece : enemyPieces) {
+               if (piece.controlsSquare(fileIterator, backRank)) {
+                   System.out.println(funcStr + "FAIL: can not castle through check: " + piece.color + " " + piece.type + " at " + piece.file + piece.rank  + " controls square " + fileIterator + backRank);
+                   return false;
+               }
+            }
+            fileIterator = (char)((int)fileIterator + 1);
+        }
+
+        System.out.println(funcStr + "SUCCESS: " + thisStr + " can short castle!");
+        return true;
+    }
+
+    @Override
+    public Boolean canLongCastle(ChessBoard board) {
+        String funcStr = this.type + "::canLongCastle(): ";
+        String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
+
+        // get the enemy pieces
+        ArrayList<ChessPiece> enemyPieces = (this.color == PieceColor.WHITE) ? board.getBlackPieces() : board.getWhitePieces();
+
+        // All castling movements happen on the back rank
+        final Character backRank = (this.color == PieceColor.WHITE) ? '1' : '8';
+
+        // Destination for short castle is on the 'c' file
+        final Character destFile = 'c';
+
+        // initial king position
+        final Character startFile = 'e';
+
+        // initial rook file
+        final Character rookFile = 'a';
+
+        // Get final values for the current position of the king
+        final Character curFile = this.file;
+        final Character curRank = this.rank;
+
+        // Make sure the king is on starting square
+        if (curFile != startFile || curRank != backRank) {
+            System.out.println(funcStr + "FAIL: can not castle when the king is no longer on the starting square");
+            return false;
+        }
+
+        // Make sure the friendly rook is still on its starting square
+        ChessPiece rook = board.getPieceAtPosition(rookFile, backRank);
+        if (rook == null || rook.type != PieceType.ROOK || rook.color != this.color) {
+            System.out.println(funcStr + "FAIL: couldnt verify that the rook is on its starting square for a short castle");
+            return false;
+        }
+
+        // In order to castle all squares between the rook and the king must be empty and not-attacked by the opponent
+        Character fileIterator = 'd';
+        while (fileIterator != rookFile) {
+            ChessPiece square = board.getPieceAtPosition(fileIterator, backRank);
+
+            // All intermediate squares must be null
+            if (square != null) {
+                System.out.println(funcStr + "FAIL: Can not castle through " + square.type + " at " + square.file + square.rank);
+                return false;
+            }
+
+            // Iterate through enemy pieces and make sure no piece attacks this square
+            for (ChessPiece piece : enemyPieces) {
+                if (piece.controlsSquare(fileIterator, backRank)) {
+                    System.out.println(funcStr + "FAIL: can not castle through check: " + piece.color + " " + piece.type + " at " + piece.file + piece.rank  + " controls square " + fileIterator + backRank);
+                    return false;
+                }
+            }
+            fileIterator = (char)((int)fileIterator - 1);
+        }
+
+        System.out.println(funcStr + "SUCCESS: " + thisStr + " can Long castle!");
+        return true;
+    }
+
 }

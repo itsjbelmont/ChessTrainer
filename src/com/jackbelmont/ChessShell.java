@@ -222,6 +222,36 @@ public class ChessShell {
                     }
                 }
 
+                if (Pattern.matches("[a-h][1-8] can short castle", command)) {
+                    Pattern p = Pattern.compile("([a-h][1-8]) can short castle");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        ChessPiece king = chessBoard.getPieceAtPosition(m.group(1).charAt(0), m.group(1).charAt(1));
+                        if (king == null || king.type != ChessPiece.PieceType.KING) {
+                            System.out.println("ChessShell::test() Can not check short castle unless the piece specified is a king!");
+                            continue;
+                        } else {
+                            king.canShortCastle(chessBoard);
+                        }
+
+                    }
+                }
+
+                if (Pattern.matches("[a-h][1-8] can long castle", command)) {
+                    Pattern p = Pattern.compile("([a-h][1-8]) can long castle");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        ChessPiece king = chessBoard.getPieceAtPosition(m.group(1).charAt(0), m.group(1).charAt(1));
+                        if (king == null || king.type != ChessPiece.PieceType.KING) {
+                            System.out.println("ChessShell::test() Can not check long castle unless the piece specified is a king!");
+                            continue;
+                        } else {
+                            king.canLongCastle(chessBoard);
+                        }
+
+                    }
+                }
+
                 if (Pattern.matches("add (white|black) (pawn|rook|knight|bishop|king|queen) at [a-h][1-8]", command)) {
                     Pattern p = Pattern.compile("add (white|black) (pawn|rook|knight|bishop|king|queen) at ([a-h][1-8])");
                     Matcher m = p.matcher(command);
