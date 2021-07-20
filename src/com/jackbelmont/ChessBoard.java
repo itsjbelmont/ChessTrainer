@@ -517,7 +517,6 @@ public class ChessBoard {
             Matcher m = p.matcher(command);
 
             if (m.matches()) {
-                System.out.println("ChessBoard::move() " + m.group(1) + " " + m.group(2));
                 ChessPiece king = null;
 
                 // Get the king from all pieces
