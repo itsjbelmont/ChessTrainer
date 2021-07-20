@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 
 import static java.lang.Math.abs;
 
@@ -274,8 +275,13 @@ public class ChessBoard {
         }
     }
 
-    public void refreshPiecesOnBoard() {
-        //Nullify board
+    public void refreshChessBoard() {
+        /*
+            All we need to do in order to move a piece now is to change the pieces file and rank index and then
+            call this function to re-draw the board
+        */
+
+        // First we need to nullify board
         for (Character rank : ranks) {
             for (Character file : files) {
                 Integer rankIdx = getRankIdx(rank);
@@ -298,116 +304,6 @@ public class ChessBoard {
         refreshAllPieceMoves();
     }
 
-    public boolean verifyMoveSyntax(String moveStr) {
-        // Make sure a non empty string was passed so we don't get indexing issues
-        if (moveStr == null || moveStr.isEmpty() || moveStr.isBlank()) {
-            Logger.logStr("\tverifyMoveSyntax(): moveStr is null or empty!");
-            return false;
-        }
-
-        // Check special commands such as castling
-        // Castle movement may be specified with 'O' or '0' depending on the standard
-        if (moveStr.equals("O-O") || moveStr.equals("O-O-O") ||
-            moveStr.equals("0-0") || moveStr.equals("0-0-0")){
-            Logger.logStr("verifyMoveSyntax(): Verified castling movement");
-            return true;
-        }
-
-        // get the piece type being commanded
-        // can figure this out by taking the first character of the str
-        ChessPiece.PieceType type;
-        char firstChar = moveStr.charAt(0);
-        switch (firstChar) {
-            case 'a':
-            case 'b':
-            case 'c':
-            case 'd':
-            case 'e':
-            case 'f':
-            case 'g':
-            case 'h':
-                type = ChessPiece.PieceType.PAWN;
-                break;
-            case 'R':
-                type = ChessPiece.PieceType.ROOK;
-                break;
-            case 'N':
-                type = ChessPiece.PieceType.KNIGHT;
-                break;
-            case 'B':
-                type = ChessPiece.PieceType.BISHOP;
-                break;
-            case 'Q':
-                type = ChessPiece.PieceType.QUEEN;
-                break;
-            case 'K':
-                type = ChessPiece.PieceType.KING;
-                break;
-            default:
-                Logger.logStr("\tverifyMoveSyntax(): moveStr " + moveStr + " did not specify a piece properly");
-                return false;
-        }
-
-        switch (type) {
-            case PAWN:
-                    if (Pattern.matches("^[a-h]x[a-h][2-7]$", moveStr)) {
-                        // dont include moving to ranks 1 or 8 since back rank pawn movements should include a promotion
-                        if (moveStr.charAt(0) == moveStr.charAt(2)) {
-                            Logger.logStr("\tverifyMoveSyntax(): Pawns can not take directly in front of them!");
-                            return false;
-                        } else {
-                            int startColIdx = getFileIdx(moveStr.charAt(0));
-                            int endColIdx = getFileIdx(moveStr.charAt(2));
-                            if (abs(startColIdx - endColIdx) != 1) {
-                                Logger.logStr("\tverifyMoveSyntax(): Pawns can only capture pieces in the columns immediately bordering them");
-                                return false;
-                            }
-                        }
-                        Logger.logStr("\tverifyMoveSyntax(): Pawn capture specified");
-                    } else if (Pattern.matches("^[a-h][18]$", moveStr)) {
-                        // Any pawn movement to the back rank must include a promotion
-                        Logger.logStr("\tverifyMoveSyntax(): Any pawn move to the back rank must include a promotion");
-                        return false;
-                    } else if (Pattern.matches("^[a-h]x[a-h][18]$", moveStr)) {
-                        // Any pawn movement to the back rank must include a promotion
-                        Logger.logStr("\tverifyMoveSyntax(): Any pawn move to the back rank must include a promotion");
-                        return false;
-                    } else if (Pattern.matches("^[a-h][2-7]", moveStr)) {
-                        Logger.logStr("\tverifyMoveSyntax(): Pawn move specified");
-                    } else if (Pattern.matches("^[a-h][18]=?[RNBQ]", moveStr)) {
-                        Logger.logStr("\tverifyMoveSyntax(): Pawn promotion specified");
-                    } else if (Pattern.matches("^[a-h]x[a-h][18]=?[RNBQ]", moveStr)) {
-                        int startColIdx = getFileIdx(moveStr.charAt(0));
-                        int endColIdx = getFileIdx(moveStr.charAt(2));
-                        if (abs(startColIdx - endColIdx) != 1) {
-                            Logger.logStr("\tverifyMoveSyntax(): Pawns can only capture pieces in the columns immediately bordering them");
-                            return false;
-                        }
-                        Logger.logStr("\tverifyMoveSyntax(): Pawn capture with promotion specified");
-                    } else {
-                        // If we didnt match the string to a valid pawn move yet, we must have a invalid syntax
-                        Logger.logStr("\tverifyMoveSyntax(): Pawn move invalid syntax!");
-                        return false;
-                    }
-                break;
-            case ROOK:
-            case KNIGHT:
-            case BISHOP:
-                break;
-            case QUEEN:
-            case KING:
-                break;
-            default:
-                Logger.logStr("\tverifyMoveSyntax(): ERROR: Failed in switch statement on the PieceType");
-        }
-
-        // If we got here the syntax is valid
-        // Next make sure the piece can make its move on the current board
-        getPieceFromChessNotation(moveStr);
-
-        return true; // success
-    }
-
     public boolean move(String command) {
         ChessPiece pieceToMove = null;
         ChessPiece.PieceType type = null;
@@ -420,7 +316,11 @@ public class ChessBoard {
         ChessPiece.PieceType promotionType = null;
         String logStr = "ChessBoard::move() ";
 
+        /* Regular Expressions for chess notation move strings */
         String pawnMoveStr = "^([a-h])(x([a-h]))?([1-8])(=?([kqrbn]))?";
+        String majorPieceMoveStr = "^([nrbq])([a-h])?([1-8])?(x)?([a-h][1-8])";
+        String kingPieceMoveStr = "^k(x)?([a-h][1-8])";
+
         if (Pattern.matches(pawnMoveStr,command)) {
             Pattern p = Pattern.compile(pawnMoveStr);
             Matcher m = p.matcher(command);
@@ -471,9 +371,9 @@ public class ChessBoard {
                     if (piece.type == type && piece.getFile() == originFile) {
                         Boolean pieceCanMakeMove = false;
                         if ( capture ) {
-                            pieceCanMakeMove = piece.canCaptureAt(destinationFile, destinationRank);
+                            pieceCanMakeMove = piece.canCaptureAt(destinationFile, destinationRank, this);
                         } else {
-                            pieceCanMakeMove = piece.canMoveTo(destinationFile, destinationRank);
+                            pieceCanMakeMove = piece.canMoveTo(destinationFile, destinationRank, this);
                         }
 
                         if (pieceCanMakeMove) {
@@ -531,12 +431,154 @@ public class ChessBoard {
                 System.out.println("ChessBoard::move() something went wrong matching pawn movement string!");
                 return false;
             }
+        } else if (Pattern.matches(majorPieceMoveStr,command)) {
+            Pattern p = Pattern.compile(majorPieceMoveStr);
+            Matcher m = p.matcher(command);
+
+            if (m.matches()) {
+                // Get the piece type that we are trying to move
+                switch(m.group(1).charAt(0)) {
+                    case 'r': type = ChessPiece.PieceType.ROOK; break;
+                    case 'n': type = ChessPiece.PieceType.KNIGHT; break;
+                    case 'b': type = ChessPiece.PieceType.BISHOP; break;
+                    case 'q': type = ChessPiece.PieceType.QUEEN; break;
+                    default:
+                        System.out.println("ChessBoard::move() Failed to get they pice type you tried to move");
+                        return false;
+                }
+
+                // Determine if capture is specified
+                if (m.group(4) != null) {
+                    capture = true;
+                }
+
+                // Get destination square
+                if (m.group(5) != null) {
+                    destinationFile = m.group(5).charAt(0);
+                    destinationRank = m.group(5).charAt(1);
+                } else {
+                    System.out.println("ChessBoard::move() Failed to get the destination square information");
+                    return false;
+                }
+
+                // If origin squares were specified grab them now
+                if (m.group(2) != null) {
+                    originFile = m.group(2).charAt(0);
+                }
+                if (m.group(3) != null) {
+                    originRank = m.group(3).charAt(0);
+                }
+
+                //Find the piece we are trying to move
+                ArrayList<ChessPiece> piecesThatCanMakeMove = new ArrayList<>();
+                ArrayList<ChessPiece> thisColorPieces = (whosTurn == ChessPiece.PieceColor.WHITE) ? this.whitePieces : this.blackPieces;
+                for (ChessPiece piece : thisColorPieces) {
+                    // Continue if the pice isnt the right type
+                    if (piece.type != type) {
+                        continue;
+                    }
+
+                    // filter by rank if it was specified
+                    if (originRank != null) {
+                        if (piece.rank != originRank) {
+                           continue;
+                        }
+                    }
+                    // Filter by file if it was specified
+                    if (originFile != null) {
+                        if (piece.file != originFile) {
+                            continue;
+                        }
+                    }
+                    if (capture) {
+                        if (piece.canCaptureAt(destinationFile, destinationRank, this)) {
+                             piecesThatCanMakeMove.add(piece);
+                        }
+                    } else {
+                        if(piece.canMoveTo(destinationFile, destinationRank, this)) {
+                            piecesThatCanMakeMove.add(piece);
+                       }
+                    }
+                }
+
+                if(piecesThatCanMakeMove.size() < 1) {
+                    System.out.println("ChessBoard::move() FAIL: No pieces can make the specified move");
+                    return false;
+                } else if (piecesThatCanMakeMove.size() > 1) {
+                    System.out.println("ChessBoard::move() FAIL: Too many pieces can make the specified move");
+                    return false;
+                } else {
+                    pieceToMove = piecesThatCanMakeMove.get(0);
+                    logStr = logStr + "Moving " + pieceToMove.color + " " + pieceToMove.type + " at " + pieceToMove.file + pieceToMove.rank + " with capture=" + capture + " to " + destinationFile + destinationRank;
+                }
+            }
+        } else if (Pattern.matches(kingPieceMoveStr,command)) {
+            Pattern p = Pattern.compile(kingPieceMoveStr);
+            Matcher m = p.matcher(command);
+
+            if (m.matches()) {
+                System.out.println("ChessBoard::move() " + m.group(1) + " " + m.group(2));
+                ChessPiece king = null;
+
+                // Get the king from all pieces
+                ArrayList<ChessPiece> myPieces = (whosTurn == ChessPiece.PieceColor.WHITE) ? whitePieces : blackPieces;
+                for (ChessPiece piece : myPieces) {
+                    if (piece.type == ChessPiece.PieceType.KING) {
+                        king = piece;
+                    }
+                }
+
+                if (king == null) {
+                    System.out.println("ChessBoard::move() FAIL: Couldnt find king for " + whosTurn + " pieces");
+                    return false;
+                }
+
+                if (m.group(1) != null){
+                    capture = true;
+                }
+
+                if (m.group(2) != null) {
+                    destinationFile = m.group(2).charAt(0);
+                    destinationRank = m.group(2).charAt(1);
+                } else {
+                    System.out.println("ChessBoard::move() FAIL: couldnt get the destination square");
+                    return false;
+                }
+
+                // Make sure the king can make the move
+                if (capture) {
+                    if (!king.canCaptureAt(destinationFile, destinationRank, this)) {
+                        System.out.println("ChessBoard::move() FAIL: king can not capture on " + destinationFile + destinationRank);
+                        return false;
+                    }
+                } else {
+                    if (!king.canMoveTo(destinationFile, destinationRank, this)) {
+                        System.out.println("ChessBoard::move() FAIL: king can not move to " + destinationFile + destinationRank);
+                        return false;
+                    }
+                }
+
+                // move the king
+                pieceToMove = king;
+                logStr = logStr + "moving " + pieceToMove.color + " " + pieceToMove.type + " at " + pieceToMove.file + pieceToMove.rank + " to " + destinationFile + destinationRank;
+            }
+        } else if (Pattern.matches("O-O-O", command) || Pattern.matches("0-0-0", command)) {
+            // Long castle
+            System.out.println("ChessBoard::move() LONG CASTLE NOT YET IMPLEMENTED");
+            return false;
+        } else if (Pattern.matches("O-O", command) || Pattern.matches("0-0", command)) {
+            // Short castle
+            System.out.println("ChessBoard::move() SHORT CASTLE NOT YET IMPLEMENTED");
+            return false;
         }
 
-        /* Perform the specified move! */
+    /* Perform the specified move! */
         System.out.println(logStr);
         if (pieceToMove != null) {
             movePiece(pieceToMove, destinationFile, destinationRank);
+        } else {
+            System.out.println("ChessBoard::move() FAILED: Piece determined for the move is NULL");
+            return false;
         }
 
         if (promotion) {
@@ -576,93 +618,6 @@ public class ChessBoard {
         return true;
     }
 
-    public ChessPiece getPieceFromChessNotation(String move) {
-        ChessPiece returnPiece = null;
-
-        // Get the list of pieces to search through
-        ArrayList<ChessPiece> listOfPieces;
-        if (whosTurn == ChessPiece.PieceColor.WHITE) {
-            listOfPieces = whitePieces;
-        } else {
-            listOfPieces = blackPieces;
-        }
-
-        // Make sure a non empty string was passed so we don't get indexing issues
-        if (move == null || move.isEmpty() || move.isBlank()) {
-            Logger.logStr("\tgetPieceFromChessNotation(): move is null or empty!");
-            return null;
-        }
-
-        // get the piece type being commanded
-        // can figure this out by taking the first character of the str
-        ChessPiece.PieceType type;
-        char firstChar = move.charAt(0);
-        switch (firstChar) {
-            case 'a':
-            case 'b':
-            case 'c':
-            case 'd':
-            case 'e':
-            case 'f':
-            case 'g':
-            case 'h':
-                type = ChessPiece.PieceType.PAWN;
-                break;
-            case 'R':
-                type = ChessPiece.PieceType.ROOK;
-                break;
-            case 'N':
-                type = ChessPiece.PieceType.KNIGHT;
-                break;
-            case 'B':
-                type = ChessPiece.PieceType.BISHOP;
-                break;
-            case 'Q':
-                type = ChessPiece.PieceType.QUEEN;
-                break;
-            case 'K':
-                type = ChessPiece.PieceType.KING;
-                break;
-            default:
-                Logger.logStr("\tgetPieceFromChessNotation(): moveStr " + move + " did not specify a piece properly");
-                return null;
-        }
-
-        for (ChessPiece piece : listOfPieces) {
-            if (piece.type != type) {
-                // We already know what type we are looking for so we can skip the pieces that dont fit the match
-                continue;
-            }
-
-            switch (piece.type) {
-                case PAWN:
-                    //First character specifies the column that the pawn is in
-                    if (piece.file != firstChar) {
-                        continue;
-                    } else {
-                        char pieceRank = piece.getRank();
-                        // How to determine which pawn with string manipulation when there are doubled pawns???
-                        // How to determine which pawn when e2 e3 are doubled and the command is e4?
-
-                        System.out.println(pieceRank);
-                        System.out.println(piece);
-                    }
-
-                    break;
-                case ROOK:
-                case KNIGHT:
-                case BISHOP:
-                    break;
-                case QUEEN:
-                case KING:
-                    break;
-                default:
-                    Logger.logStr("\tverifyMoveSyntax(): ERROR: Failed in switch statement on the PieceType");
-            }
-        }
-
-        return null;
-    }
 
     public boolean movePiece(ChessPiece piece, Character file, Character rank) {
         if (piece == null) {
@@ -694,7 +649,7 @@ public class ChessBoard {
             }
             piece.file = file;
             piece.rank = rank;
-            refreshPiecesOnBoard();
+            refreshChessBoard();
             return true;
         }
 
@@ -793,75 +748,6 @@ public class ChessBoard {
         SwingUtilities.invokeLater(r);
     }
 
-    public void playOnCommandLine() {
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            while (true) {
-                printChessBoard();
-                if (whosTurn == ChessPiece.PieceColor.WHITE) {
-                    System.out.print("Enter white command: ");
-                } else {
-                    System.out.print("Enter black command: ");
-                }
-
-                String command = reader.readLine();
-                if (command.equals("exit")) {
-                    return;
-                }
-
-                if (command == null || command.isEmpty() || command.isBlank()) {
-                    System.out.println("\tPlease specify command!");
-                    continue;
-                }
-
-                if (Pattern.matches("print [a-h][1-8]", command)) {
-                    Pattern p = Pattern.compile("print ([a-h][1-8])");
-                    Matcher m = p.matcher(command);
-
-                    if (m.matches()){
-                        String position = m.group(1);
-                        System.out.println("Printing piece moves at: " + position);
-                        Character file = position.charAt(0);
-                        Character rank = position.charAt(1);
-                        ChessPiece piece = getPieceAtPosition(file, rank);
-                        piece.printPossibleMoves();
-
-                    }
-                    continue;
-                }
-
-                if (!verifyMoveSyntax(command)) {
-                    System.out.println("\tMove syntax could not be verified!");
-                } else {
-                    System.out.println("\tMove syntax verified!");
-                }
-
-            }
-        } catch (IOException e) {
-            return;
-        }
-    }
-
-    public ChessPiece setPieceAtPosition(ChessPiece piece) {
-        Integer fileIdx = getFileIdx(piece.file);
-        Integer rankIdx = getRankIdx(piece.rank);
-        chessPieces[rankIdx][fileIdx] = piece;
-
-        System.out.println("ChessBoard::setPieceAtPosition() adding new " + piece.color + " " + piece.type + " at " + piece.file + piece.rank);
-
-        // Add piece to the list of pieces for each team
-        if (piece.color == ChessPiece.PieceColor.WHITE) {
-            whitePieces.add(piece);
-        } else {
-            // if its not white, it must be black!
-            blackPieces.add(piece);
-        }
-
-        refreshAllPieceMoves();
-
-        return piece;
-    }
-
     public void setMyPieceColor(ChessPiece.PieceColor color) {
         this.myPieceColor = color;
 
@@ -882,38 +768,49 @@ public class ChessBoard {
     }
 
     public ChessPiece removePieceAtPosition(Character file, Character rank) {
-        Integer fileIdx = getFileIdx(file);
-        Integer rankIdx = getRankIdx(rank);
         ChessPiece removePiece = null;
-
-        if (fileIdx <= 7 && fileIdx >= 0 && rankIdx <= 7 && rankIdx >= 0) {
-            removePiece = chessPieces[rankIdx][fileIdx];
-
-            if (removePiece != null) {
-                Logger.logStr("ChessPiece::removePieceAtPosition() Removing piece at " + file + rank);
-                chessPieces[rankIdx][fileIdx] = null;
-            } else {
-                Logger.logStr("ChessPiece::removePieceAtPosition() No piece to remove at " + file + rank);
-            }
-        }
 
         // Need to search through white and black pieces to remove piece
         for (int i=0; i<whitePieces.size(); i++) {
             if (whitePieces.get(i).file == file && whitePieces.get(i).rank == rank) {
                 // Found piece - now remove it
-                whitePieces.remove(i);
+                removePiece = whitePieces.remove(i);
             }
         }
         for (int i=0; i<blackPieces.size(); i++) {
             if (blackPieces.get(i).file == file && blackPieces.get(i).rank == rank) {
                 // Found piece - now remove it
-                blackPieces.remove(i);
+                removePiece = blackPieces.remove(i);
             }
         }
 
-        refreshAllPieceMoves();
+        refreshChessBoard();
 
         return removePiece;
+    }
+
+    public ChessPiece setPieceAtPosition(ChessPiece piece) {
+
+        ChessPiece square = getPieceAtPosition(piece.file, piece.rank);
+        if (square != null) {
+            System.out.println("ChessBoard::setPieceAtPosition() FAIL: Can not add new " + piece.color + " " + piece.type + " at " + piece.file + piece.rank + " since the square is already occupied by " + square.color + " " + square.type);
+            return null;
+        }
+
+        System.out.println("ChessBoard::setPieceAtPosition() adding new " + piece.color + " " + piece.type + " at " + piece.file + piece.rank);
+
+        // Add piece to the list of pieces for each team
+        if (piece.color == ChessPiece.PieceColor.WHITE) {
+            whitePieces.add(piece);
+        } else {
+            // if its not white, it must be black!
+            blackPieces.add(piece);
+        }
+
+        // This will update the board with the new piece
+        refreshChessBoard();
+
+        return piece;
     }
 
     public static Integer getFileIdx(Character file) {

@@ -15,6 +15,12 @@
 # Generated files
 .idea/**/contentModel.xml
 
+# Java class files
+*.class
+
+# DS Store files
+.DS_Store
+
 # Sensitive or high-churn files
 .idea/**/dataSources/
 .idea/**/dataSources.ids

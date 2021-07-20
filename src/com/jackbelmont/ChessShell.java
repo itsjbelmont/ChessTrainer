@@ -8,9 +8,11 @@ import java.util.regex.Pattern;
 
 public class ChessShell {
     ChessBoard chessBoard;
+    TestAssist testAssist;
 
     ChessShell() {
         chessBoard = new ChessBoard(ChessBoard.GameMode.TWO_PLAYER);
+        testAssist = new TestAssist(chessBoard);
     }
 
     public void test() {
@@ -44,7 +46,9 @@ public class ChessShell {
                     System.out.println("\tprint black pieces");
                     System.out.println("\tprint white controlled squares");
                     System.out.println("\tprint black controlled squares");
-                    System.out.println("\tprint moves a1");
+                    System.out.println("\tprint controlled squares a1");
+                    System.out.println("\tprint possible moves a1");
+                    System.out.println("\tprint possible captures a1");
                     System.out.println("\tremove a1");
                     System.out.println("\tadd white|black pawn|rook|knight|bishop|queen|king at a1");
                     continue;
@@ -79,7 +83,7 @@ public class ChessShell {
                     chessBoard.printControlledSquares(ChessPiece.PieceColor.WHITE);
                     continue;
                 }
-
+                /*
                 if (Pattern.matches("print moves [a-h][1-8]", command)) {
                     Pattern p = Pattern.compile("print moves ([a-h][1-8])");
                     Matcher m = p.matcher(command);
@@ -97,7 +101,8 @@ public class ChessShell {
                         }
                     }
                     continue;
-                }
+                }*/
+
                 if(Pattern.matches("move [a-h][1-8] [a-h][1-8]", command)) {
                     Pattern p = Pattern.compile("move ([a-h][1-8]) ([a-h][1-8])");
                     Matcher m = p.matcher(command);
@@ -135,6 +140,85 @@ public class ChessShell {
                     Matcher m = p.matcher(command);
                     if (m.matches()) {
                         chessBoard.move(m.group(1));
+                    }
+                    continue;
+                }
+
+                if (Pattern.matches("[a-h][1-8] can move to [a-h][1-8]", command)) {
+                    Pattern p = Pattern.compile("([a-h][1-8]) can move to ([a-h][1-8])");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        Character startFile = m.group(1).charAt(0);
+                        Character startRank = m.group(1).charAt(1);
+                        Character destFile = m.group(2).charAt(0);
+                        Character destRank = m.group(2).charAt(1);
+                        ChessPiece piece = chessBoard.getPieceAtPosition(startFile, startRank);
+                        if (piece == null) {
+                            System.out.println("ChessShell::test(): can  move to: origin square is null!");
+                        } else {
+                            piece.canMoveTo(destFile, destRank, chessBoard);
+                        }
+                    }
+                    continue;
+                }
+
+                if (Pattern.matches("[a-h][1-8] can capture at [a-h][1-8]", command)) {
+                    Pattern p = Pattern.compile("([a-h][1-8]) can capture at ([a-h][1-8])");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        Character startFile = m.group(1).charAt(0);
+                        Character startRank = m.group(1).charAt(1);
+                        Character destFile = m.group(2).charAt(0);
+                        Character destRank = m.group(2).charAt(1);
+                        ChessPiece piece = chessBoard.getPieceAtPosition(startFile, startRank);
+                        if (piece == null) {
+                            System.out.println("ChessShell::test(): can  move to: origin square is null!");
+                        } else {
+                            piece.canCaptureAt(destFile, destRank, chessBoard);
+                        }
+                    }
+                    continue;
+                }
+
+                if (Pattern.matches("[a-h][1-8] controls square [a-h][1-8]", command)) {
+                    Pattern p = Pattern.compile("([a-h][1-8]) controls square ([a-h][1-8])");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        Character startFile = m.group(1).charAt(0);
+                        Character startRank = m.group(1).charAt(1);
+                        Character destFile = m.group(2).charAt(0);
+                        Character destRank = m.group(2).charAt(1);
+                        ChessPiece piece = chessBoard.getPieceAtPosition(startFile, startRank);
+                        if (piece == null) {
+                            System.out.println("ChessShell::test(): can  move to: origin square is null!");
+                        } else {
+                            piece.controlsSquare(destFile, destRank, chessBoard);
+                        }
+                    }
+                    continue;
+                }
+
+                if (Pattern.matches("print controlled squares [a-h][1-8]", command)) {
+                    Pattern p = Pattern.compile("print controlled squares ([a-h][1-8])");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        testAssist.printControledSquaresForPieceAt(m.group(1).charAt(0), m.group(1).charAt(1));
+                    }
+                }
+
+                if (Pattern.matches("print possible moves [a-h][1-8]", command)) {
+                    Pattern p = Pattern.compile("print possible moves ([a-h][1-8])");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        testAssist.printPossibleMovesForPieceAt(m.group(1).charAt(0), m.group(1).charAt(1));
+                    }
+                }
+
+                if (Pattern.matches("print possible captures [a-h][1-8]", command)) {
+                    Pattern p = Pattern.compile("print possible captures ([a-h][1-8])");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        testAssist.printPossibleCapturesForPieceAt(m.group(1).charAt(0), m.group(1).charAt(1));
                     }
                 }
 
