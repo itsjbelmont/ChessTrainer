@@ -249,4 +249,16 @@ public abstract class ChessPiece {
 
     // Used to determine if a square is defended by the enemy (important for checking king moves)
     public abstract Boolean controlsSquare(Character file, Character rank, ChessBoard board);
+
+    // King will over-write this
+    public Boolean canShortCastle(ChessBoard board) {
+        System.out.println("ChessPiece::canShortCastle() FAIL: Can not castle on any piece other than a king");
+        return false;
+    }
+
+    // King will over-write this
+    public Boolean canLongCastle(ChessBoard board) {
+        System.out.println("ChessPiece::canShortCastle() FAIL: Can not castle on any piece other than a king");
+        return false;
+    }
 }
