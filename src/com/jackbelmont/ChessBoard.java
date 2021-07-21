@@ -309,12 +309,17 @@ public class ChessBoard {
         ChessPiece.PieceType type = null;
         Boolean capture = false;
         Boolean promotion = false;
+        Boolean castle = false;
         Character originRank = null;
         Character originFile = null;
         Character destinationFile = null;
         Character destinationRank = null;
         ChessPiece.PieceType promotionType = null;
         String logStr = "ChessBoard::move() ";
+
+        ChessPiece castleRook = null;
+        Character rookDestFile = null;
+        Character rookDestRank = null;
 
         /* Regular Expressions for chess notation move strings */
         String pawnMoveStr = "^([a-h])(x([a-h]))?([1-8])(=?([kqrbn]))?";
@@ -563,16 +568,90 @@ public class ChessBoard {
             }
         } else if (Pattern.matches("O-O-O", command) || Pattern.matches("0-0-0", command)) {
             // Long castle
-            System.out.println("ChessBoard::move() LONG CASTLE NOT YET IMPLEMENTED");
-            return false;
+            castle = true;
+            ArrayList<ChessPiece> pieces = (whosTurn == ChessPiece.PieceColor.WHITE) ? whitePieces : blackPieces;
+            ChessPiece king = null;
+            for (ChessPiece piece : pieces) {
+                if (piece.type == ChessPiece.PieceType.KING) {
+                    king = piece;
+                    break;
+                }
+            }
+
+            if (king == null) {
+                System.out.println("ChessBoard::move(): FAIL: Couldnt find " + whosTurn + " king");
+                return false;
+            }
+
+            if (!king.canLongCastle(this)) {
+                System.out.println("ChessBoard::move(): FAIL: " + king.color + " " + king.type + " can not castle right now");
+                return false;
+            }
+
+            destinationFile = 'c';
+            destinationRank = (whosTurn == ChessPiece.PieceColor.WHITE) ? '1' : '8';
+            pieceToMove = king;
+
+            castleRook = getPieceAtPosition('a', destinationRank);
+            if (castleRook == null) {
+                System.out.println("ChessBoard::move(): FAIL: Couldnt find rook for long castle");
+                return false;
+            }
+            rookDestFile = 'd';
+            rookDestRank = destinationRank;
+
+            logStr = logStr + "performing long castle";
         } else if (Pattern.matches("O-O", command) || Pattern.matches("0-0", command)) {
             // Short castle
-            System.out.println("ChessBoard::move() SHORT CASTLE NOT YET IMPLEMENTED");
-            return false;
+            castle = true;
+            ArrayList<ChessPiece> pieces = (whosTurn == ChessPiece.PieceColor.WHITE) ? whitePieces : blackPieces;
+            ChessPiece king = null;
+            for (ChessPiece piece : pieces) {
+                if (piece.type == ChessPiece.PieceType.KING) {
+                    king = piece;
+                    break;
+                }
+            }
+
+            if (king == null) {
+                System.out.println("ChessBoard::move(): FAIL: Couldnt find " + whosTurn + " king");
+                return false;
+            }
+
+            if (!king.canShortCastle(this)) {
+                System.out.println("ChessBoard::move(): FAIL: " + king.color + " " + king.type + " can not castle right now");
+                return false;
+            }
+
+            destinationFile = 'g';
+            destinationRank = (whosTurn == ChessPiece.PieceColor.WHITE) ? '1' : '8';
+            pieceToMove = king;
+
+            castleRook = getPieceAtPosition('h', destinationRank);
+            if (castleRook == null) {
+                System.out.println("ChessBoard::move(): FAIL: Couldnt find rook for long castle");
+                return false;
+            }
+            rookDestFile = 'f';
+            rookDestRank = destinationRank;
+
+            logStr = logStr + "performing short castle";
         }
 
-    /* Perform the specified move! */
+        // TIME TO ACTUALLY MOVE EVERYTHING
         System.out.println(logStr);
+
+        // If we are castling we need to remove the rook first
+        if (castle) {
+            if (castleRook != null) {
+                movePiece(castleRook, rookDestFile, rookDestRank);
+            } else {
+                System.out.println("ChessBoard::move() FAILED: Rook to castle is null");
+                return false;
+            }
+        }
+
+        /* Perform the specified move! */
         if (pieceToMove != null) {
             movePiece(pieceToMove, destinationFile, destinationRank);
         } else {
@@ -641,18 +720,16 @@ public class ChessBoard {
 
         //TODO: verify that the move results in a valid board - might need to generate and verify a new resulting board (ie. no self checks)
 
-        if(piece.canMoveTo(file, rank)) {
-            if (destination != null && destination.color != piece.color) {
-                /* remove enemy piece if it exists */
-                removePieceAtPosition(file, rank);
-            }
-            piece.file = file;
-            piece.rank = rank;
-            refreshChessBoard();
-            return true;
+        // Dont need to verify the move again - this function can be used to force moves
+        // ChessBoard::move() is used for validating the move first
+        if (destination != null && destination.color != piece.color) {
+            /* remove enemy piece if it exists */
+            removePieceAtPosition(file, rank);
         }
-
-        return false;
+        piece.file = file;
+        piece.rank = rank;
+        refreshChessBoard();
+        return true;
     }
 
     public void printChessBoard() {
