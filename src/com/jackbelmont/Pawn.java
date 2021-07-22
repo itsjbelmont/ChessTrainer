@@ -237,6 +237,15 @@ public class Pawn extends ChessPiece{
         String destString = file.toString() + rank.toString();
         String thisStr = this.color + " " + this.type + " at " + this.file + this.rank;
 
+        final Character curFile = this.file;
+        final Character curRank = this.rank;
+
+        // Get intended piece direction since pawns only move forward (white up vs black down)
+        Integer direction = (this.color == PieceColor.WHITE) ? 1 : -1;
+
+        // Get  the rank for en passant
+        Character enPassantRank = (this.color == PieceColor.WHITE) ? '5' : '4';
+
         // Sanitize input
         if (rank < '1' || rank > '8') {
             Logger.logStr(funcStr + "FAIL: Invalid rank passed: " + rank);
@@ -249,6 +258,21 @@ public class Pawn extends ChessPiece{
             return false;
         }
 
+        // En Passant check
+        // make sure we are on the correct rank and the destination rank/file are correct for a capture
+        if (this.rank == enPassantRank && rank-curRank == direction && abs(curFile - file) == 1) {
+            // Make sure the neighboring square is an enemy pawn (current rank, destination file)
+            ChessPiece enPassantCapturePiece = board.getPieceAtPosition(file, this.rank);
+            if (enPassantCapturePiece != null && enPassantCapturePiece.type == PieceType.PAWN && enPassantCapturePiece.color != this.color) {
+                //Make sure the destination square is null
+                ChessPiece destination = board.getPieceAtPosition(file, rank);
+                if (destination == null) {
+                    System.out.println(funcStr + "SUCCESS: " + thisStr + " can perform en passant to " + destString + " while capturing " + enPassantCapturePiece.color + " " + enPassantCapturePiece.type + " at " + enPassantCapturePiece.file + enPassantCapturePiece.rank);
+                    return true;
+                }
+            }
+        }
+
         ChessPiece destination = board.getPieceAtPosition(file, rank);
         if (destination == null) {
             Logger.logStr(funcStr + "FAIL: " + thisStr + " Can not capture on an empty square at " + destString);
@@ -258,11 +282,6 @@ public class Pawn extends ChessPiece{
             return false;
         }
 
-        final Character curFile = this.file;
-        final Character curRank = this.rank;
-
-        // Get intended piece direction since pawns only move forward (white up vs black down)
-        Integer direction = (this.color == PieceColor.WHITE) ? 1 : -1;
 
         if (rank - curRank == direction && abs(curFile - file) == 1) {
             // Captures on the diagonal

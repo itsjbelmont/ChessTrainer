@@ -310,6 +310,7 @@ public class ChessBoard {
         Boolean capture = false;
         Boolean promotion = false;
         Boolean castle = false;
+        Boolean enPassant = false;
         Character originRank = null;
         Character originFile = null;
         Character destinationFile = null;
@@ -317,6 +318,7 @@ public class ChessBoard {
         ChessPiece.PieceType promotionType = null;
         String logStr = "ChessBoard::move() ";
 
+        ChessPiece enPassantCapturedPiece = null;
         ChessPiece castleRook = null;
         Character rookDestFile = null;
         Character rookDestRank = null;
@@ -330,10 +332,14 @@ public class ChessBoard {
             Pattern p = Pattern.compile(pawnMoveStr);
             Matcher m = p.matcher(command);
 
-            System.out.println("Pawn move specified!");
-
             if (m.matches()) {
                 type = ChessPiece.PieceType.PAWN;
+
+                // Set  the rank for en passant
+                Character enPassantRank = (whosTurn == ChessPiece.PieceColor.WHITE) ? '5' : '4';
+
+                // Get intended piece direction since pawns only move forward (white up vs black down)
+                Integer direction = (whosTurn == ChessPiece.PieceColor.WHITE) ? 1 : -1;
 
                 if (m.group(1) != null) {
                     originFile = m.group(1).charAt(0);
@@ -366,12 +372,8 @@ public class ChessBoard {
                 }
 
                 /* Can only move pieces associated with the current turn */
-                ArrayList<ChessPiece> piecesToMove;
-                if (whosTurn == ChessPiece.PieceColor.WHITE) {
-                    piecesToMove = whitePieces;
-                } else {
-                    piecesToMove = blackPieces;
-                }
+                ArrayList<ChessPiece> piecesToMove = (whosTurn == ChessPiece.PieceColor.WHITE) ? whitePieces : blackPieces;
+
                 for (ChessPiece piece : piecesToMove) {
                     if (piece.type == type && piece.getFile() == originFile) {
                         Boolean pieceCanMakeMove = false;
@@ -388,9 +390,26 @@ public class ChessBoard {
                         }
                     }
                 }
+
                 if (pieceToMove == null) {
                     System.out.println("ChessBoard::move() there are no moves that can make the specified move right now!");
                     return false;
+                }
+
+                // Check if the move is en passant
+                if (pieceToMove.canCaptureAt(destinationFile, destinationRank, this) && capture && pieceToMove.rank == enPassantRank) {
+                    ChessPiece destinationSquare = getPieceAtPosition(destinationFile, destinationRank);
+                    if (destinationSquare != null) {
+                        System.out.println("ChessBoard::move(): FAIL: Can not en-passant to an occupied square");
+                        return false;
+                    } else {
+                        enPassantCapturedPiece = getPieceAtPosition(destinationFile, pieceToMove.rank);
+                        if (enPassantCapturedPiece == null) {
+                            System.out.println("ChessBoard::move(): FAIL: Can not capture a null square with en passant");
+                            return false;
+                        }
+                        enPassant = true;
+                    }
                 }
 
                 if (m.group(5) != null) {
@@ -657,6 +676,10 @@ public class ChessBoard {
         } else {
             System.out.println("ChessBoard::move() FAILED: Piece determined for the move is NULL");
             return false;
+        }
+
+        if (enPassant) {
+            removePieceAtPosition(enPassantCapturedPiece.file, enPassantCapturedPiece.rank);
         }
 
         if (promotion) {
