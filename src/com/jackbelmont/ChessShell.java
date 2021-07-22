@@ -311,4 +311,29 @@ public class ChessShell {
         }
     }
 
+    public void playOnCommandLine() {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.println("\n\n\nNow playing chess on the command line!");
+
+            while(true) {
+                chessBoard.printChessBoard();
+                if (chessBoard.getWhosTurn() == ChessPiece.PieceColor.WHITE) {
+                    System.out.print(ConsoleColors.WHITE_PIECE + "WHITE" + ConsoleColors.RESET + " move: ");
+                } else {
+                    System.out.print(ConsoleColors.BLACK_PIECE + "BLACK" + ConsoleColors.RESET + " move: ");
+                }
+
+                String command = reader.readLine();
+                if (command.equals("exit")) {
+                    return;
+                }
+                chessBoard.move(command);
+            }
+
+        } catch (Exception e) {
+            System.out.println("ChessShell::playOnCommandLine(): FAIL: EXCEPTION THROWN");
+            return;
+        }
+    }
 }

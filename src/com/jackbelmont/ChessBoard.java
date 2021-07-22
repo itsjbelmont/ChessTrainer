@@ -325,8 +325,8 @@ public class ChessBoard {
 
         /* Regular Expressions for chess notation move strings */
         String pawnMoveStr = "^([a-h])(x([a-h]))?([1-8])(=?([kqrbn]))?";
-        String majorPieceMoveStr = "^([nrbq])([a-h])?([1-8])?(x)?([a-h][1-8])";
-        String kingPieceMoveStr = "^k(x)?([a-h][1-8])";
+        String majorPieceMoveStr = "^([NRBQ])([a-h])?([1-8])?(x)?([a-h][1-8])";
+        String kingPieceMoveStr = "^K(x)?([a-h][1-8])";
 
         if (Pattern.matches(pawnMoveStr,command)) {
             Pattern p = Pattern.compile(pawnMoveStr);
@@ -462,10 +462,10 @@ public class ChessBoard {
             if (m.matches()) {
                 // Get the piece type that we are trying to move
                 switch(m.group(1).charAt(0)) {
-                    case 'r': type = ChessPiece.PieceType.ROOK; break;
-                    case 'n': type = ChessPiece.PieceType.KNIGHT; break;
-                    case 'b': type = ChessPiece.PieceType.BISHOP; break;
-                    case 'q': type = ChessPiece.PieceType.QUEEN; break;
+                    case 'R': type = ChessPiece.PieceType.ROOK; break;
+                    case 'N': type = ChessPiece.PieceType.KNIGHT; break;
+                    case 'B': type = ChessPiece.PieceType.BISHOP; break;
+                    case 'Q': type = ChessPiece.PieceType.QUEEN; break;
                     default:
                         System.out.println("ChessBoard::move() Failed to get they pice type you tried to move");
                         return false;
@@ -655,6 +655,9 @@ public class ChessBoard {
             rookDestRank = destinationRank;
 
             logStr = logStr + "performing short castle";
+        } else {
+            System.out.println("ChessBoard::move(): FAIL: BAD CHESS NOTATION!");
+            return false;
         }
 
         // TIME TO ACTUALLY MOVE EVERYTHING

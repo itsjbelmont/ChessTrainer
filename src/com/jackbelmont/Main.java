@@ -10,7 +10,8 @@ public class Main {
         //cb.playOnCommandLine();
 
         ChessShell cs = new ChessShell();
-        cs.test();
+        //cs.test();
+        cs.playOnCommandLine();
 
     }
 
