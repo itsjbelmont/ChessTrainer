@@ -2,11 +2,13 @@ package com.jackbelmont;
 // Code from: https://stackoverflow.com/questions/21077322/create-a-chess-board-with-jpanel
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.sql.Array;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.*;
@@ -945,6 +947,14 @@ public class ChessBoard {
 
     public final JComponent getChessBoard() {
         return chessBoard;
+    }
+
+    public Boolean saveToFile() {
+        return false;
+    }
+
+    public Boolean saveToFile(String name) {
+        return false;
     }
 
     public final JComponent getGui() {

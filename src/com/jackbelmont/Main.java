@@ -11,6 +11,7 @@ public class Main {
 
         ChessShell cs = new ChessShell();
         //cs.test();
+
         cs.playOnCommandLine();
 
     }

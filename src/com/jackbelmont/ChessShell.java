@@ -328,7 +328,15 @@ public class ChessShell {
                 if (command.equals("exit")) {
                     return;
                 }
+
+                if (command.equals("save")) {
+                    chessBoard.saveToFile();
+                    continue;
+                }
+
+                // If no command was specified
                 chessBoard.move(command);
+
             }
 
         } catch (Exception e) {
