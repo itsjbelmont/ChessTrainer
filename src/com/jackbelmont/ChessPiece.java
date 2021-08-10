@@ -142,13 +142,6 @@ public abstract class ChessPiece {
         return color;
     }
 
-    /*
-        public abstract void refreshPossibleMoves()
-            - refreshes the possibleMoves[8][8] array based on the current position
-            - WARNING: Does not take into account the other pieces on the board
-    */
-    public abstract void refreshPossibleMoves(ChessPiece[][] chessBoard);
-
     public abstract Boolean canMoveTo(Character file, Character rank, ChessBoard board);
 
     public abstract Boolean canCaptureAt(Character file, Character rank, ChessBoard board);

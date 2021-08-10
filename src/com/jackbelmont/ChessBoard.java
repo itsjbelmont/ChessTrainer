@@ -123,10 +123,6 @@ public class ChessBoard {
             setPieceAtPosition(new King(ChessPiece.PieceColor.WHITE, 'e', '1'));
             setPieceAtPosition(new King(ChessPiece.PieceColor.BLACK, 'e', '8'));
 
-            // Pieces are on the board - Now we need to set up their moves
-            Logger.logStr(("\tRefreshing possible moves for all pieces"));
-            refreshAllPieceMoves();
-
             Logger.logStr("Finished initializing the chess pieces!");
 
         } catch (Exception e) {
@@ -208,18 +204,6 @@ public class ChessBoard {
         return 0; //success
     }
 
-    public void refreshAllPieceMoves() {
-        //Refresh White Pieces
-        for (ChessPiece piece : whitePieces) {
-            piece.refreshPossibleMoves(this.chessPieces);
-        }
-
-        //Refresh Black Pieces
-        for (ChessPiece piece : blackPieces) {
-            piece.refreshPossibleMoves(this.chessPieces);
-        }
-    }
-
     public void refreshChessBoard() {
         /*
             All we need to do in order to move a piece now is to change the pieces file and rank index and then
@@ -245,8 +229,6 @@ public class ChessBoard {
             Integer fileIdx = getFileIdx(blackPiece.file);
             chessPieces[rankIdx][fileIdx] = blackPiece;
         }
-
-        refreshAllPieceMoves();
     }
 
     public boolean move(String command) {

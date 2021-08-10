@@ -54,12 +54,6 @@ public class ChessShell {
                     continue;
                 }
 
-                if (command.equals("refreshAllPieceMoves")) {
-                    System.out.println("Refreshing all piece moves");
-                    chessBoard.refreshAllPieceMoves();
-                    continue;
-                }
-
                 if (command.equals("print white pieces")) {
                     for(ChessPiece piece: chessBoard.getWhitePieces()) {
                         System.out.println(piece);
@@ -301,7 +295,6 @@ public class ChessShell {
                                 break;
                         }
                     }
-                    chessBoard.refreshAllPieceMoves();
                     continue;
                 }
 
