@@ -16,15 +16,6 @@ public class King extends ChessPiece {
     }
 
     /*
-        Validate a king move
-    */
-    @Override
-    public boolean validateMove (ChessPiece[][] chessPieces, String move) {
-
-        return false; //failure
-    }
-
-    /*
         public abstract void refreshPossibleMoves()
             - refreshes the possibleMoves[8][8] array based on the current position
             - WARNING: Does not take into account the other pieces on the board
@@ -267,7 +258,7 @@ public class King extends ChessPiece {
 
             // Iterate through enemy pieces and make sure no piece attacks this square
             for (ChessPiece piece : enemyPieces) {
-               if (piece.controlsSquare(fileIterator, backRank)) {
+               if (piece.controlsSquare(fileIterator, backRank, board)) {
                    System.out.println(funcStr + "FAIL: can not castle through check: " + piece.color + " " + piece.type + " at " + piece.file + piece.rank  + " controls square " + fileIterator + backRank);
                    return false;
                }
@@ -329,7 +320,7 @@ public class King extends ChessPiece {
 
             // Iterate through enemy pieces and make sure no piece attacks this square
             for (ChessPiece piece : enemyPieces) {
-                if (piece.controlsSquare(fileIterator, backRank)) {
+                if (piece.controlsSquare(fileIterator, backRank, board)) {
                     System.out.println(funcStr + "FAIL: can not castle through check: " + piece.color + " " + piece.type + " at " + piece.file + piece.rank  + " controls square " + fileIterator + backRank);
                     return false;
                 }

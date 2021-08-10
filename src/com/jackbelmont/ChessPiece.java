@@ -107,44 +107,6 @@ public abstract class ChessPiece {
     }
 
     /*
-       Print the chess board to the console
-   */
-    public void printPossibleMoves() {
-        StringBuilder outputBoard = new StringBuilder();
-        Character files[] = ChessBoard.files;
-        Character ranks[] = {'8', '7', '6', '5', '4', '3', '2', '1'};
-        int curFile = ChessBoard.getFileIdx(this.file);
-        int curRank = ChessBoard.getRankIdx(this.rank);
-
-        outputBoard.append("  " + this.color + " " + this.type + " at [" + this.file + this.rank+"]:\n");
-        outputBoard.append("  |-----|-----|-----|-----|-----|-----|-----|-----|\n");
-        for (Character rank : ranks) {
-            int rankIdx = ChessBoard.getRankIdx(rank);
-            outputBoard.append( ConsoleColors.RED + (rankIdx + 1) + ConsoleColors.RESET + " |");
-            for ( Character file : files ) {
-                int fileIdx = ChessBoard.getFileIdx(file);
-
-                if (possibleMoves[rankIdx][fileIdx] == null){
-                    outputBoard.append("     ");
-                } else if (possibleMoves[rankIdx][fileIdx] == 'O') {
-                    if (this.color == ChessPiece.PieceColor.WHITE) {
-                        outputBoard.append("  " + ConsoleColors.CYAN + 'O' + ConsoleColors.RESET + "  ");
-                    } else {
-                        outputBoard.append("  " + ConsoleColors.GREEN + 'O' + ConsoleColors.RESET + "  ");
-                    }
-                } else {
-                    outputBoard.append("  " + possibleMoves[rankIdx][fileIdx] + "  ");
-                }
-                outputBoard.append("|");
-            }
-            outputBoard.append("\n");
-            outputBoard.append("  |-----|-----|-----|-----|-----|-----|-----|-----|\n");
-        }
-        outputBoard.append(ConsoleColors.RED + "     a     b     c     d     e     f     g     h   \n" + ConsoleColors.RESET);
-        System.out.println(outputBoard);
-    }
-
-    /*
         Used to display the piece's info
     */
     @Override
@@ -178,62 +140,6 @@ public abstract class ChessPiece {
     */
     public ChessPiece.PieceColor getColor() {
         return color;
-    }
-
-    /*
-        pass an [8][8] array of chessPieces which represent a board
-    */
-    public abstract boolean validateMove (ChessPiece[][] chessPieces, String move);
-
-    /*
-        canMoveTo(file, rank)
-            check if piece can move to a specified square
-            Should be the same as canCaptureAt(file, rank) for all pieces except pawns
-    */
-    public boolean canMoveTo(Character file, Character rank) {
-        int fileIdx = ChessBoard.getFileIdx(file);
-        int rankIdx = ChessBoard.getRankIdx(rank);
-        if (possibleMoves[rankIdx][fileIdx] != null && (possibleMoves[rankIdx][fileIdx] == 'X' || possibleMoves[rankIdx][fileIdx] == 'M')) {
-            /* Can move to a square if its just a move OR an attack: 'M' or 'X' */
-            return true;
-        } else {
-            /* if square not marked by possibleMoves then cant move there */
-            return false;
-        }
-    }
-
-    /*
-        canCaptureAt(file, rank)
-            check if the piece can capture a piece on a specified square
-    */
-    public boolean canCaptureAt(Character file, Character rank) {
-        int fileIdx = ChessBoard.getFileIdx(file);
-        int rankIdx = ChessBoard.getRankIdx(rank);
-        if (possibleMoves[rankIdx][fileIdx] != null && possibleMoves[rankIdx][fileIdx] == 'X') {
-            /* Can capture a piece at a square if possibleMoves marks it as an 'X' */
-            return true;
-        } else {
-            /* if square not marked by possibleMoves as 'X' then cant capture there */
-            return false;
-        }
-    }
-
-    public boolean controlsSquare(Character file, Character rank) {
-        int fileIdx = ChessBoard.getFileIdx(file);
-        int rankIdx = ChessBoard.getRankIdx(rank);
-        if (possibleMoves[rankIdx][fileIdx] != null) {
-            if (this.type == PieceType.PAWN) {
-                if (possibleMoves[rankIdx][fileIdx] == 'x' || possibleMoves[rankIdx][fileIdx] == 'X') {
-                    return true;
-                }
-            } else {
-                /* Non-Pawns control all squares they can move to or capture at - 'M' or 'X' */
-                return true;
-            }
-        }
-
-        /* if square not marked by possibleMoves as 'X' then cant capture there */
-        return false;
     }
 
     /*

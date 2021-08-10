@@ -17,38 +17,6 @@ public class Pawn extends ChessPiece{
     }
 
     /*
-        Validate a pawn move
-    */
-    @Override
-    public boolean validateMove (ChessPiece[][] chessPieces, String move) {
-        logger.iLogStr("Validating move: " + move);
-
-        // validate that a string was passed so we dont accidentally index out of bounds on it
-        if (move.isEmpty() || move.isBlank() || move == null) {
-            logger.iLogStr("\t" + move + " is empty - can not validate!");
-            return false; // failure
-        }
-
-        // All pawn moves must start with their current column
-        if (move.charAt(0) != this.file) {
-            logger.iLogStr("\t" + move + " is invalid - current column[" + this.file + "] != commanded column[" + move.charAt(0) + "]");
-            return false; //failure
-        }
-
-        // Forward moves are denoted by characters representing: column, end rank
-        //   - example: e4
-        if (Pattern.matches("^[a-h][1-8]", move)){
-            // Valid pattern for moving forward
-            logger.iLogStr("\t" + move + " is valid!");
-            return true; //success
-        }
-        // captures are denoted by characters representing: column start, 'x', column end, end rank
-
-        logger.iLogStr("\t" + move + " is invalid!");
-        return false; //failure
-    }
-
-    /*
         public abstract void refreshPossibleMoves()
             - refreshes the possibleMoves[8][8] array based on the current position
             - WARNING: Does not take into account the other pieces on the board

@@ -15,15 +15,6 @@ public class Bishop extends ChessPiece {
     }
 
     /*
-        Validate a Bishop move
-    */
-    @Override
-    public boolean validateMove (ChessPiece[][] chessPieces, String move) {
-
-        return false; //failure
-    }
-
-    /*
         public abstract void refreshPossibleMoves()
             - refreshes the possibleMoves[8][8] array based on the current position
             - WARNING: Does not take into account the other pieces on the board

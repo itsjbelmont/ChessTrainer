@@ -18,24 +18,26 @@ import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import static java.lang.Math.abs;
 
 public class ChessBoard {
-    public enum GameMode{TWO_PLAYER, ONE_PLAYER};
-    public static final Character files[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
-    public static final Character ranks[] = {'1', '2', '3', '4', '5', '6', '7', '8'};
 
+    // GUI Vars
     private final JPanel gui = new JPanel(new BorderLayout(3, 3));
     private JButton[][] chessBoardSquares = new JButton[8][8];
     private JPanel chessBoard;
     private JToolBar tools;
     private final JLabel message = new JLabel("Chess Openings Trainer is ready!");
 
+    // Chess Data
     private ChessPiece[][] chessPieces = new ChessPiece[8][8];
+    public enum GameMode{TWO_PLAYER, ONE_PLAYER};
+    private GameMode mode;
+    private ChessPiece.PieceColor whosTurn = ChessPiece.PieceColor.WHITE;
     private ArrayList<ChessPiece> whitePieces = null;
     private ArrayList<ChessPiece> blackPieces = null;
     private Integer[][] blackControlledSquares = new Integer[8][8];
     private Integer[][] whiteControlledSquares = new Integer[8][8];
     private ChessPiece.PieceColor myPieceColor;
-    private ChessPiece.PieceColor whosTurn = ChessPiece.PieceColor.WHITE;
-    private GameMode mode;
+    public static final Character files[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
+    public static final Character ranks[] = {'1', '2', '3', '4', '5', '6', '7', '8'};
 
 
     ChessBoard() {
@@ -215,65 +217,6 @@ public class ChessBoard {
         //Refresh Black Pieces
         for (ChessPiece piece : blackPieces) {
             piece.refreshPossibleMoves(this.chessPieces);
-        }
-
-        refreshWhiteControlledSquares();
-        refreshBlackControlledSquares();
-    }
-
-    public void refreshBlackControlledSquares() {
-        Character files[] = ChessBoard.files;
-        Character ranks[] = ChessBoard.ranks;
-
-        //TODO: what about pieces defending thier own pieces - that is controlled right? 'd'
-
-        // All squares default to attacked by 0 pieces
-        for (Character file : files) {
-            for (Character rank : ranks) {
-                int fileIdx = ChessBoard.getFileIdx(file);
-                int rankIdx = ChessBoard.getRankIdx(rank);
-                blackControlledSquares[rankIdx][fileIdx] = 0;
-            }
-        }
-
-        for (ChessPiece piece : blackPieces) {
-            for (Character file : files) {
-                for (Character rank : ranks) {
-                    int fileIdx = ChessBoard.getFileIdx(file);
-                    int rankIdx = ChessBoard.getRankIdx(rank);
-                    if (piece.controlsSquare(file, rank)) {
-                        blackControlledSquares[rankIdx][fileIdx]++;
-                    }
-                }
-            }
-        }
-    }
-
-    public void refreshWhiteControlledSquares() {
-        Character files[] = ChessBoard.files;
-        Character ranks[] = ChessBoard.ranks;
-
-        //TODO: what about pieces defending thier own pieces - that is controlled right? 'd'
-
-        // All squares default to attacked by 0 pieces
-        for (Character file : files) {
-            for (Character rank : ranks) {
-                int fileIdx = ChessBoard.getFileIdx(file);
-                int rankIdx = ChessBoard.getRankIdx(rank);
-                whiteControlledSquares[rankIdx][fileIdx] = 0;
-            }
-        }
-
-        for (ChessPiece piece : whitePieces) {
-            for (Character file : files) {
-                for (Character rank : ranks) {
-                    int fileIdx = ChessBoard.getFileIdx(file);
-                    int rankIdx = ChessBoard.getRankIdx(rank);
-                    if (piece.controlsSquare(file, rank)) {
-                        whiteControlledSquares[rankIdx][fileIdx]++;
-                    }
-                }
-            }
         }
     }
 
