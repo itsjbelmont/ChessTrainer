@@ -3,12 +3,16 @@ package com.jackbelmont;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Array;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.*;
@@ -28,52 +32,117 @@ public class ChessBoard {
 
     // Chess Data
     private ChessPiece[][] chessPieces = new ChessPiece[8][8];
-    public enum GameMode{TWO_PLAYER, ONE_PLAYER};
-    private GameMode mode;
+    public enum GameMode{TWO_PLAYER, ONE_PLAYER}
+    private GameMode mode = GameMode.TWO_PLAYER;
     private ChessPiece.PieceColor whosTurn = ChessPiece.PieceColor.WHITE;
-    private ArrayList<ChessPiece> whitePieces = null;
-    private ArrayList<ChessPiece> blackPieces = null;
+    private ArrayList<ChessPiece> whitePieces = new ArrayList<>();
+    private ArrayList<ChessPiece> blackPieces = new ArrayList<>();
     private Integer[][] blackControlledSquares = new Integer[8][8];
     private Integer[][] whiteControlledSquares = new Integer[8][8];
-    private ChessPiece.PieceColor myPieceColor;
+    private ChessPiece.PieceColor myPieceColor = ChessPiece.PieceColor.WHITE;
     public static final Character files[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
     public static final Character ranks[] = {'1', '2', '3', '4', '5', '6', '7', '8'};
 
 
     ChessBoard() {
-        this.myPieceColor = ChessPiece.PieceColor.WHITE;
-        this.mode = GameMode.ONE_PLAYER;
-
-        // Game always starts with WHITE
-        this.whosTurn = ChessPiece.PieceColor.WHITE;
-
-        initializeChessPieces();
-        initializeGui();
+        //Creates an empty board
     }
 
     ChessBoard(GameMode mode) {
         this.mode = mode;
-         // Default to giving the user the white pieces
-         if (this.mode == GameMode.ONE_PLAYER) {
-             myPieceColor = ChessPiece.PieceColor.WHITE;
-         } else if (this.mode == GameMode.TWO_PLAYER) {
-             myPieceColor = null;
-         }
-
-         // Game always starts with WHITE
-         this.whosTurn = ChessPiece.PieceColor.WHITE;
-
          initializeChessPieces();
-         initializeGui();
+    }
+
+    // Load chessboard from file
+    public static ChessBoard loadChessBoardFromFile(String fileName) {
+        ChessBoard board = new ChessBoard();
+        // if file doesnt exist then just initialize the new board
+        if (!Files.exists(Paths.get(fileName))) {
+            System.out.println("ChessBoard(): file does not exist: " + fileName);
+            return null;
+        }
+
+        try {
+            File chessFile = new File(fileName);
+            Scanner chessReader = new Scanner(chessFile);
+            String pieceStrRegEx = "(WHITE|BLACK) (PAWN|ROOK|KNIGHT|BISHOP|QUEEN|KING) at ([a-h][1-8])";
+            Pattern piecePattern = Pattern.compile(pieceStrRegEx);
+            while (chessReader.hasNextLine()) {
+                String line = chessReader.nextLine();
+
+                System.out.println(line);
+                Matcher chessMatcher = piecePattern.matcher(line);
+                if (chessMatcher.matches()) {
+                    ArrayList<ChessPiece> pieces = (chessMatcher.group(1).equals("WHITE")) ? board.whitePieces : board.blackPieces;
+                    ChessPiece.PieceColor color = (chessMatcher.group(1).equals("WHITE")) ? ChessPiece.PieceColor.WHITE : ChessPiece.PieceColor.BLACK;
+                    Character file = chessMatcher.group(3).charAt(0);
+                    Character rank = chessMatcher.group(3).charAt(1);
+                    ChessPiece piece = null;
+                    switch(chessMatcher.group(2)) {
+                        case "PAWN":
+                            pieces.add(new Pawn(color, file, rank));
+                            break;
+                        case "ROOK":
+                            pieces.add(new Rook(color, file, rank));
+                            break;
+                        case "KNIGHT":
+                            pieces.add(new Knight(color, file, rank));
+                            break;
+                        case "BISHOP":
+                            pieces.add(new Bishop(color, file, rank));
+                            break;
+                        case "QUEEN":
+                            pieces.add(new Queen(color, file, rank));
+                            break;
+                        case "KING":
+                            pieces.add(new King(color, file, rank));
+                            break;
+                        default:
+                            break;
+                    }
+                    continue;
+                }
+
+                if (Pattern.matches("myPieceColor: (WHITE|BLACK)", line)) {
+                    Pattern p = Pattern.compile("myPieceColor: (WHITE|BLACK)");
+                    Matcher m = p.matcher(line);
+                    if (m.matches()) {
+                        board.myPieceColor = (m.group(1).equals("WHITE")) ? ChessPiece.PieceColor.WHITE : ChessPiece.PieceColor.BLACK;
+                    }
+                    continue;
+                }
+
+                if (Pattern.matches("whosTurn: (WHITE|BLACK)", line)) {
+                    Pattern p = Pattern.compile("whosTurn: (WHITE|BLACK)");
+                    Matcher m = p.matcher(line);
+                    if (m.matches()) {
+                        board.whosTurn = (m.group(1).equals("WHITE")) ? ChessPiece.PieceColor.WHITE : ChessPiece.PieceColor.BLACK;
+                    }
+                    continue;
+                }
+
+                if (Pattern.matches("mode: (ONE_PLAYER|TWO_PLAYER)", line)) {
+                    Pattern p = Pattern.compile("mode: (ONE_PLAYER|TWO_PLAYER)");
+                    Matcher m = p.matcher(line);
+                    if (m.matches()) {
+                        board.mode = (m.group(1).equals("ONE_PLAYER")) ? GameMode.ONE_PLAYER : GameMode.TWO_PLAYER;
+                    }
+                    continue;
+                }
+            }
+            chessReader.close();
+            board.refreshChessBoard();
+        } catch (FileNotFoundException e) {
+            System.out.println("Exception thrown when loading new board!");
+            return null;
+        }
+
+        return board;
     }
 
     public int initializeChessPieces() {
         try {
             Logger.logStr("Initializing the chess pieces:");
-
-            whitePieces = new ArrayList<>();
-            blackPieces = new ArrayList<>();
-            getPieceAtPosition('a', '1');
 
             // Make sure the board is full of nulls to start
             for (int ii = 0; ii < 8; ii++) {
@@ -879,7 +948,50 @@ public class ChessBoard {
     }
 
     public Boolean saveToFile(String name) {
-        return false;
+        try {
+            // add .chess extension (chessboard)
+            if (!name.endsWith(".chess")) {
+                name = name + ".chess";
+            }
+
+            // If the file already exists then dont overwrite
+            if (Files.exists(Paths.get(name))) {
+                System.out.println("ChessBoard::saveToFile(): FAIL: File already exists: " + name);
+                return false;
+            }
+
+            System.out.println("ChessBoard::saveToFile(): Saving chessboard to file: " + name);
+            BufferedWriter writer = new BufferedWriter(new FileWriter(name, true));
+            for (ChessPiece piece : blackPieces) {
+                writer.write(piece.toString() + "\n");
+            }
+            for (ChessPiece piece : whitePieces) {
+                writer.write(piece.toString() + "\n");
+            }
+
+            writer.write("\n");
+            if (myPieceColor == ChessPiece.PieceColor.WHITE) {
+                writer.write("myPieceColor: WHITE\n");
+            } else {
+                writer.write("myPieceColor: BLACK\n");
+            }
+            if (whosTurn == ChessPiece.PieceColor.WHITE) {
+                writer.write("whosTurn: WHITE\n");
+            } else {
+                writer.write("whosTurn: BLACK\n");
+            }
+            if (mode == GameMode.ONE_PLAYER) {
+                writer.write("mode: ONE_PLAYER\n");
+            } else {
+                writer.write("mode: TWO_PLAYER\n");
+            }
+
+            writer.close();
+            return true;
+        } catch(IOException e) {
+            System.out.println("BAD FILE WRITE TO FILE: " + name);
+            return false;
+        }
     }
 
     public final JComponent getGui() {

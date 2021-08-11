@@ -33,7 +33,7 @@ public class ChessShell {
                     return;
                 }
 
-                if (command == null || command.isEmpty() || command.isBlank()) {
+                if (command.isEmpty() || command.isBlank()) {
                     System.out.println("\tPlease specify command!");
                     continue;
                 }
@@ -260,7 +260,6 @@ public class ChessShell {
                         } else if (m.group(1).equals("black")) {
                             color = ChessPiece.PieceColor.BLACK;
                         } else {
-                            color = null;
                             System.out.println("Pattern match couldnt determine color to add piece");
                             continue;
                         }
@@ -295,12 +294,12 @@ public class ChessShell {
                                 break;
                         }
                     }
-                    continue;
                 }
 
             }
         } catch (IOException e) {
-            return;
+            System.out.println("ChessShell::test() threw an exception!");
+            e.printStackTrace();
         }
     }
 
@@ -322,8 +321,25 @@ public class ChessShell {
                     return;
                 }
 
-                if (command.equals("save")) {
-                    chessBoard.saveToFile();
+                if (Pattern.matches("^save (.*)$", command)) {
+                    Pattern p = Pattern.compile("^save (.*)$");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        chessBoard.saveToFile(m.group(1));
+                    }
+                    continue;
+                }
+
+                if (Pattern.matches("^load (.*)$", command)) {
+                    Pattern p = Pattern.compile("^load (.*)$");
+                    Matcher m = p.matcher(command);
+                    if (m.matches()) {
+                        String fileName = m.group(1);
+                        ChessBoard tempBoard = ChessBoard.loadChessBoardFromFile(fileName);
+                        if (tempBoard != null) {
+                            chessBoard = tempBoard;
+                        }
+                    }
                     continue;
                 }
 
@@ -334,7 +350,7 @@ public class ChessShell {
 
         } catch (Exception e) {
             System.out.println("ChessShell::playOnCommandLine(): FAIL: EXCEPTION THROWN");
-            return;
+            e.printStackTrace();
         }
     }
 }
