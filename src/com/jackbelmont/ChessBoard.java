@@ -55,11 +55,20 @@ public class ChessBoard {
 
     // Load chessboard from file
     public static ChessBoard loadChessBoardFromFile(String fileName) {
+        // Create empty board which we will start filling out and return
         ChessBoard board = new ChessBoard();
-        // if file doesnt exist then just initialize the new board
+
+        // add .chess extension (chessboard)
+        if (!fileName.endsWith(".chess")) {
+            fileName = fileName + ".chess";
+        }
+
+        // Check if file exists
         if (!Files.exists(Paths.get(fileName))) {
             System.out.println("ChessBoard(): file does not exist: " + fileName);
             return null;
+        } else {
+            System.out.println("ChessBoard(): loading from file: " + fileName);
         }
 
         try {
@@ -69,8 +78,6 @@ public class ChessBoard {
             Pattern piecePattern = Pattern.compile(pieceStrRegEx);
             while (chessReader.hasNextLine()) {
                 String line = chessReader.nextLine();
-
-                System.out.println(line);
                 Matcher chessMatcher = piecePattern.matcher(line);
                 if (chessMatcher.matches()) {
                     ArrayList<ChessPiece> pieces = (chessMatcher.group(1).equals("WHITE")) ? board.whitePieces : board.blackPieces;

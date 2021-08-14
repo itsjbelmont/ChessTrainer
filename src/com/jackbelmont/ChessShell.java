@@ -3,6 +3,8 @@ package com.jackbelmont;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,11 +12,56 @@ public class ChessShell {
     ChessBoard chessBoard;
     TestAssist testAssist;
 
+    final String ERROR_STR = ConsoleColors.RED + "ERROR: " + ConsoleColors.RESET;
+
     ChessShell() {
+        // Constructor
         chessBoard = new ChessBoard(ChessBoard.GameMode.TWO_PLAYER);
         testAssist = new TestAssist(chessBoard);
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////// SHELL FUNCTIONS //////////////////////////////////////////////////////////
+
+    public void help(ArrayList<String> possibleCommands) {
+        System.out.println("\n" + ConsoleColors.BLUE + "ChessShell() commands currently available:" + ConsoleColors.RESET);
+        for (String command : possibleCommands) {
+            System.out.println("\t" + command);
+        }
+        System.out.println(ConsoleColors.YELLOW + "NOTE: " + ConsoleColors.RESET + "any command that doesnt match one of the above will be treated as a move command\n");
+
+    }
+
+    public void exit() {
+        System.out.println("Exiting ChessShell.");
+        System.exit(0);
+    }
+
+    public void load(String fileName) {
+        ChessBoard tempBoard = ChessBoard.loadChessBoardFromFile(fileName);
+        if (tempBoard != null) {
+            System.out.println("load(" + fileName + ") " + ConsoleColors.GREEN + "SUCCESS!" + ConsoleColors.RESET);
+            this.chessBoard = tempBoard;
+        } else {
+            System.out.println("load(" + fileName + ") " + ConsoleColors.RED + "FAILED!" + ConsoleColors.RESET);
+        }
+    }
+
+    public void save(String fileName) {
+        Boolean success = chessBoard.saveToFile(fileName);
+        if (success) {
+            System.out.println("save(" + fileName + ") " + ConsoleColors.GREEN + "SUCCESS!" + ConsoleColors.RESET);
+        } else {
+            System.out.println("save(" + fileName + ") " + ConsoleColors.RED + "FAILED!" + ConsoleColors.RESET);
+        }
+    }
+
+    ///////////////////////////////////// END SHELL FUNCTIONS //////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////// SHELL SETUP ///////////////////////////////////////////////////////
     public void test() {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -304,12 +351,38 @@ public class ChessShell {
     }
 
     public void playOnCommandLine() {
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            System.out.println("\n\n\nNow playing chess on the command line!");
+        ArrayList<String> possibleCommands = new ArrayList<>();
+        possibleCommands.add("save");
+        possibleCommands.add("load");
+        possibleCommands.add("exit"); //Redundant in run()
+        this.run(possibleCommands);
+    }
 
+    ////////////////////////////////////////////// END SHELL SETUP /////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////// Main Shell //////////////////////////////////////////////////////////
+
+    public void run(ArrayList<String> possibleCommands) {
+        // WARNING: if the command in possibleCommands takes any input it must be a single type String
+        //          since this is a text based shell
+
+        // Make sure possibleCommands always has an exit command for obvious reasons
+        if (!possibleCommands.contains("exit")) {
+            possibleCommands.add("exit");
+        }
+
+        try{
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+            // Shell execution loop
             while(true) {
+                // Print the chess board
                 chessBoard.printChessBoard();
+
+                // Print prompt
                 if (chessBoard.getWhosTurn() == ChessPiece.PieceColor.WHITE) {
                     System.out.print(ConsoleColors.WHITE_PIECE + "WHITE" + ConsoleColors.RESET + " move: ");
                 } else {
@@ -317,40 +390,70 @@ public class ChessShell {
                 }
 
                 String command = reader.readLine();
-                if (command.equals("exit")) {
-                    return;
-                }
 
-                if (Pattern.matches("^save (.*)$", command)) {
-                    Pattern p = Pattern.compile("^save (.*)$");
-                    Matcher m = p.matcher(command);
-                    if (m.matches()) {
-                        chessBoard.saveToFile(m.group(1));
+                // check for a command
+                try {
+                    //Split command by whitespace
+                    String[] commandArray = command.split("\\s+");
+
+                    if (commandArray.length < 1) {
+                        continue;
                     }
-                    continue;
-                }
 
-                if (Pattern.matches("^load (.*)$", command)) {
-                    Pattern p = Pattern.compile("^load (.*)$");
-                    Matcher m = p.matcher(command);
-                    if (m.matches()) {
-                        String fileName = m.group(1);
-                        ChessBoard tempBoard = ChessBoard.loadChessBoardFromFile(fileName);
-                        if (tempBoard != null) {
-                            chessBoard = tempBoard;
+                    String theCommand = commandArray[0];
+                    String argString = null;
+
+                    // Check for help command
+                    if (theCommand.equalsIgnoreCase("help")) {
+                        this.help(possibleCommands);
+                        continue;
+                    }
+
+                    // Check if the move is in the possibleCommands array
+                    // NOTE: a chess move is not considered a command
+                    Boolean validCommand = false;
+                    if (possibleCommands.contains(theCommand)) {
+                        validCommand = true;
+                    }
+
+                    if (validCommand) {
+
+                        try {
+                            if (commandArray.length > 1) {
+                                // Function expects an input
+                                argString = "";
+                                for (int argNum = 1; argNum < commandArray.length; argNum++) {
+                                    argString = argString + commandArray[argNum];
+                                    if (argNum < commandArray.length - 1) {
+                                        argString = argString + " ";
+                                    }
+                                }
+
+                                this.getClass().getDeclaredMethod(theCommand, String.class).invoke(this, argString);
+                                continue;
+                            } else {
+                                // Function does not expect an input
+                                this.getClass().getDeclaredMethod(theCommand).invoke(this);
+                                continue;
+                            }
+
+                        } catch (Exception e) {
+                            System.out.println(ERROR_STR + "Invalid command: " + theCommand);
+                            continue;
                         }
                     }
+                } catch (Exception e) {
+                    System.out.println(ERROR_STR + "could not split command!");
                     continue;
                 }
 
-                // If no command was specified
+                //If we got here the user probably specified a chess move
                 chessBoard.move(command);
 
-            }
-
+            } // while(true)
         } catch (Exception e) {
-            System.out.println("ChessShell::playOnCommandLine(): FAIL: EXCEPTION THROWN");
-            e.printStackTrace();
+            System.out.println(ERROR_STR + "Unknown exception thrown in ChessShell()::run()");
+            System.exit(1);
         }
     }
 }
