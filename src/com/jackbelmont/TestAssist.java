@@ -98,6 +98,7 @@ public class TestAssist {
             Logger.enableConsoleLogging();
         }
     }
+
     public void printPossibleCapturesForPieceAt(Character file, Character rank) {
         ChessPiece piece = this.board.getPieceAtPosition(file, rank);
         if (piece == null) {
