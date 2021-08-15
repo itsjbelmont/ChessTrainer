@@ -24,6 +24,7 @@ public class ChessShell {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////// ASSISTING FUNCTIONS //////////////////////////////////////////////////////
+
     public void printSuccess(String message) {
         System.out.println(SUCCESS + message);
     }
@@ -36,8 +37,20 @@ public class ChessShell {
         System.out.println(ERROR + message);
     }
 
+    public String waitForUserInput() {
+        String input;
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            input = reader.readLine();
+        } catch (Exception e){
+            input = "";
+        }
+        return input;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////// SHELL FUNCTIONS //////////////////////////////////////////////////////////
+    // NOTE: All shell functions MUST take a single string argument
 
     public void help(ArrayList<String> possibleCommands) {
         System.out.println("\n" + ConsoleColors.BLUE + "ChessShell() commands currently available:" + ConsoleColors.RESET);
@@ -56,6 +69,15 @@ public class ChessShell {
     public void load(String fileName) {
         String func = "load(" + fileName + ")";
 
+        if (fileName.equals("help")) {
+            System.out.println("\n" + ConsoleColors.GREEN + "load " + ConsoleColors.RESET + " filename");
+            System.out.println("Function: Loads chess board from specified file");
+
+            System.out.print("\nHit ENTER to continue: ");
+            waitForUserInput();
+            return;
+        }
+
         try {
             ChessBoard tempBoard = ChessBoard.loadChessBoardFromFile(fileName);
 
@@ -73,6 +95,15 @@ public class ChessShell {
     public void save(String fileName) {
         String func = "save(" + fileName + ")";
 
+        if (fileName.equals("help")) {
+            System.out.println("\n" + ConsoleColors.GREEN + "save " + ConsoleColors.RESET + " filename");
+            System.out.println("Function: Saves chess board to specified file");
+
+            System.out.print("\nHit ENTER to continue: ");
+            waitForUserInput();
+            return;
+        }
+
         try {
             Boolean success = chessBoard.saveToFile(fileName);
             if (success) {
@@ -88,6 +119,15 @@ public class ChessShell {
     public void removePiece(String square) {
         // square in form: [a-h][1-8]
         String func = "removePiece(" + square + ")";
+
+        if (square.equals("help")) {
+            System.out.println("\n" + ConsoleColors.GREEN + "removePiece " + ConsoleColors.RESET + " [a-h][1-8]");
+            System.out.println("Function: removes a piece from the board on square specified by file and rank");
+
+            System.out.print("\nHit ENTER to continue: ");
+            waitForUserInput();
+            return;
+        }
 
         try {
             String squareMatchStr = "^([a-h][1-8])$";
@@ -111,6 +151,79 @@ public class ChessShell {
             printError(func + " exception thrown: " + e.toString());
         }
 }
+
+    public void addPiece(String command) {
+        String func = "addPiece(\"" + command + "\")";
+
+        // Match command against this regEx
+        String matchString = "(white|black) (pawn|rook|knight|bishop|king|queen) at ([a-h][1-8])";
+
+        if (command.equals("help")) {
+            System.out.println("\n" + ConsoleColors.GREEN + "addPiece" + ConsoleColors.RESET + " [white|black] [pawn|rook|knight|bishop|king|queen] at [a-h][1-8]");
+            System.out.println("Function: Adds a new piece to the chess board");
+            System.out.println("");
+
+            System.out.print("\nHit ENTER to continue: ");
+            waitForUserInput();
+            return;
+        }
+
+        try {
+            command = command.toLowerCase(Locale.ROOT);
+
+
+            // Setup this piece to add into chessboard
+            ChessPiece newPiece = null;
+
+            if (Pattern.matches(matchString, command)) {
+                Pattern p = Pattern.compile(matchString);
+                Matcher m = p.matcher(command);
+                if (m.matches()) {
+                    String position = m.group(3);
+                    char file = position.charAt(0);
+                    char rank = position.charAt(1);
+
+                    ChessPiece.PieceColor color;
+                    if (m.group(1).equals("white")) {
+                        color = ChessPiece.PieceColor.WHITE;
+                    } else if (m.group(1).equals("black")) {
+                        color = ChessPiece.PieceColor.BLACK;
+                    } else {
+                        printFail("Pattern match couldnt determine piece color");
+                        return;
+                    }
+
+                    switch (m.group(2)) {
+                        case "pawn":
+                            newPiece = new Pawn(color, file, rank);
+                            break;
+                        case "rook":
+                            newPiece = new Rook(color, file, rank);
+                            break;
+                        case "knight":
+                            newPiece = new Knight(color, file, rank);
+                            break;
+                        case "bishop":
+                            newPiece = new Bishop(color, file, rank);
+                            break;
+                        case "king":
+                            newPiece = new King(color, file, rank);
+                            break;
+                        case "queen":
+                            newPiece = new Queen(color, file, rank);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            chessBoard.setPieceAtPosition(newPiece);
+            printSuccess("added new piece: " + newPiece);
+        } catch (Exception e) {
+            printError(func + ": Exception thrown: " + e.toString());
+        }
+    }
 
     ///////////////////////////////////// END SHELL FUNCTIONS //////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -391,6 +504,7 @@ public class ChessShell {
         ArrayList<String> possibleCommands = new ArrayList<>();
 
         possibleCommands.add("removePiece");
+        possibleCommands.add("addPiece");
 
         // Important commands
         possibleCommands.add("save");
@@ -421,6 +535,7 @@ public class ChessShell {
             // Shell execution loop
             while(true) {
                 // Print the chess board
+                System.out.println("");
                 chessBoard.printChessBoard();
 
                 // Print prompt
