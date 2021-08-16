@@ -37,7 +37,8 @@ public class ChessShell {
         System.out.println(ERROR + message);
     }
 
-    public String waitForUserInput() {
+    public String waitForUserInput(String prompt) {
+        System.out.print(prompt);
         String input;
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -51,13 +52,15 @@ public class ChessShell {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////// SHELL FUNCTIONS //////////////////////////////////////////////////////////
     // NOTE: All shell functions MUST take a single string argument
+    // NOTE: All shell functions should return Boolean true for success or Boolean false for failure
 
     public void help(ArrayList<String> possibleCommands) {
         System.out.println("\n" + ConsoleColors.BLUE + "ChessShell() commands currently available:" + ConsoleColors.RESET);
         for (String command : possibleCommands) {
             System.out.println("\t" + command);
         }
-        System.out.println(ConsoleColors.YELLOW + "NOTE: " + ConsoleColors.RESET + "any command that doesnt match one of the above will be treated as a move command\n");
+        System.out.println(ConsoleColors.YELLOW + "NOTE: " + ConsoleColors.RESET + "any command that doesnt match one of the above will be treated as a move command");
+        System.out.println(ConsoleColors.YELLOW + "NOTE: " + ConsoleColors.RESET + "pass the argument '" + ConsoleColors.RED + "help" + ConsoleColors.RESET + "' to any command for input expectations\n");
         System.out.println("Chess Notation Guide: " + "https://en.wikipedia.org/wiki/Chess_notation\n\n");
     }
 
@@ -66,16 +69,15 @@ public class ChessShell {
         System.exit(0);
     }
 
-    public void load(String fileName) {
+    public Boolean load(String fileName) {
         String func = "load(" + fileName + ")";
 
         if (fileName.equals("help")) {
             System.out.println("\n" + ConsoleColors.GREEN + "load " + ConsoleColors.RESET + " filename");
             System.out.println("Function: Loads chess board from specified file");
 
-            System.out.print("\nHit ENTER to continue: ");
-            waitForUserInput();
-            return;
+            waitForUserInput("\nHit ENTER to continue: ");
+            return true;
         }
 
         try {
@@ -84,39 +86,44 @@ public class ChessShell {
             if (tempBoard != null) {
                 printSuccess(func);
                 this.chessBoard = tempBoard;
+                return true;
             } else {
                 printFail(func);
+                return false;
             }
         } catch (Exception e) {
             printError(func + " exception thrown " + e.toString());
+            return false;
         }
     }
 
-    public void save(String fileName) {
+    public Boolean save(String fileName) {
         String func = "save(" + fileName + ")";
 
         if (fileName.equals("help")) {
             System.out.println("\n" + ConsoleColors.GREEN + "save " + ConsoleColors.RESET + " filename");
             System.out.println("Function: Saves chess board to specified file");
 
-            System.out.print("\nHit ENTER to continue: ");
-            waitForUserInput();
-            return;
+            waitForUserInput("\nHit ENTER to continue: ");
+            return true;
         }
 
         try {
             Boolean success = chessBoard.saveToFile(fileName);
             if (success) {
                 printSuccess(func);
+                return true;
             } else {
                 printFail(func);
+                return false;
             }
         } catch (Exception e) {
             printError(func + " exception thrown " + e.toString());
+            return false;
         }
     }
 
-    public void removePiece(String square) {
+    public Boolean removePiece(String square) {
         // square in form: [a-h][1-8]
         String func = "removePiece(" + square + ")";
 
@@ -124,9 +131,8 @@ public class ChessShell {
             System.out.println("\n" + ConsoleColors.GREEN + "removePiece " + ConsoleColors.RESET + " [a-h][1-8]");
             System.out.println("Function: removes a piece from the board on square specified by file and rank");
 
-            System.out.print("\nHit ENTER to continue: ");
-            waitForUserInput();
-            return;
+            waitForUserInput("\nHit ENTER to continue: ");
+            return false;
         }
 
         try {
@@ -141,18 +147,22 @@ public class ChessShell {
 
                 if (removedPiece != null) {
                     printSuccess(func);
+                    return true;
                 } else {
                     printFail(func + ": no piece on square");
+                    return false;
                 }
             } else {
                 printFail(func);
+                return false;
             }
         } catch (Exception e) {
             printError(func + " exception thrown: " + e.toString());
+            return false;
         }
 }
 
-    public void addPiece(String command) {
+    public Boolean addPiece(String command) {
         String func = "addPiece(\"" + command + "\")";
 
         // Match command against this regEx
@@ -163,9 +173,8 @@ public class ChessShell {
             System.out.println("Function: Adds a new piece to the chess board");
             System.out.println("");
 
-            System.out.print("\nHit ENTER to continue: ");
-            waitForUserInput();
-            return;
+            waitForUserInput("\nHit ENTER to continue: ");
+            return true;
         }
 
         try {
@@ -190,7 +199,7 @@ public class ChessShell {
                         color = ChessPiece.PieceColor.BLACK;
                     } else {
                         printFail("Pattern match couldnt determine piece color");
-                        return;
+                        return false;
                     }
 
                     switch (m.group(2)) {
@@ -218,10 +227,15 @@ public class ChessShell {
                 }
             }
 
-            chessBoard.setPieceAtPosition(newPiece);
-            printSuccess("added new piece: " + newPiece);
+            if (chessBoard.setPieceAtPosition(newPiece) != null) {
+                printSuccess("added new piece: " + newPiece);
+                return true;
+            } else {
+                return false;
+            }
         } catch (Exception e) {
             printError(func + ": Exception thrown: " + e.toString());
+            return false;
         }
     }
 
@@ -539,13 +553,14 @@ public class ChessShell {
                 chessBoard.printChessBoard();
 
                 // Print prompt
+                String prompt = "";
                 if (chessBoard.getWhosTurn() == ChessPiece.PieceColor.WHITE) {
-                    System.out.print(ConsoleColors.WHITE_PIECE + "WHITE" + ConsoleColors.RESET + " move: ");
+                    prompt = ConsoleColors.WHITE_PIECE + "WHITE" + ConsoleColors.RESET + " move: ";
                 } else {
-                    System.out.print(ConsoleColors.BLACK_PIECE + "BLACK" + ConsoleColors.RESET + " move: ");
+                    prompt = ConsoleColors.BLACK_PIECE + "BLACK" + ConsoleColors.RESET + " move: ";
                 }
 
-                String command = reader.readLine();
+                String command = waitForUserInput(prompt);
 
                 // check for a command
                 try {
