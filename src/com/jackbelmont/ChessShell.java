@@ -239,6 +239,66 @@ public class ChessShell {
         }
     }
 
+    public Boolean printControlledSquares(String input) {
+        String func = "printControlledSquares(" + input + ")";
+
+        try {
+            String matchInput = "^([a-h][1-8])$";
+            if (Pattern.matches(matchInput, input)) {
+                Pattern p = Pattern.compile(matchInput);
+                Matcher m = p.matcher(input);
+                if (m.matches()) {
+                    testAssist.printControledSquaresForPieceAt(m.group(1).charAt(0), m.group(1).charAt(1));
+                    printSuccess(func);
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            printError(func + ": Exception Thrown: " + e.toString());
+        }
+        return false;
+    }
+
+    public Boolean printMoves(String input) {
+        String func = "printMoves(" + input + ")";
+
+        try {
+            String matchInput = "^([a-h][1-8])$";
+            if (Pattern.matches(matchInput, input)) {
+                Pattern p = Pattern.compile(matchInput);
+                Matcher m = p.matcher(input);
+                if (m.matches()) {
+                    testAssist.printPossibleMovesForPieceAt(m.group(1).charAt(0), m.group(1).charAt(1));
+                    printSuccess(func);
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            printError(func + ": Exception Thrown: " + e.toString());
+        }
+        return false;
+    }
+
+    public Boolean printCaptures(String input) {
+        String func = "printCaptures(" + input + ")";
+
+        String matchInput = "^([a-h][1-8])$";
+        try {
+            if (Pattern.matches(matchInput, input)) {
+                Pattern p = Pattern.compile(matchInput);
+                Matcher m = p.matcher(input);
+                if (m.matches()) {
+                    testAssist.printPossibleCapturesForPieceAt(m.group(1).charAt(0), m.group(1).charAt(1));
+                    printSuccess(func);
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            printError(func + ": Exception Thrown: " + e.toString());
+        }
+        return false;
+    }
+
     ///////////////////////////////////// END SHELL FUNCTIONS //////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -519,6 +579,9 @@ public class ChessShell {
 
         possibleCommands.add("removePiece");
         possibleCommands.add("addPiece");
+        possibleCommands.add("printMoves");
+        possibleCommands.add("printCaptures");
+        possibleCommands.add("printControlledSquares");
 
         // Important commands
         possibleCommands.add("save");
